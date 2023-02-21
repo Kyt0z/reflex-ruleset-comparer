@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Ruleset Comparison tool by Kyto</title>
+	<style type="text/css">
+		* {
+			box-sizing: border-box;
+		}
+
+		body {
+			background-color: #282923;
+			color: #f8f8f2;
+			font-family: monospace;
+			font-size: 12px;
+			padding-bottom: 200px;
+		}
+
+		#difftable {
+			border: solid 2px #403d32;
+			border-collapse: collapse;
+		}
+
+		#difftable th {
+			border: solid 2px #403d32;
+			text-align: left;
+		}
+
+		#difftable td {
+			border: dotted 1px #403d32;
+		}
+
+		#difftable .bottom {
+			border-bottom: solid 1px #403d32;
+		}
+
+		#difftable .var {
+			border-right: solid 1px #403d32;
+		}
+
+		.var {
+			color: #e7db74;
+		}
+
+		.negative {
+			color: #f92472;
+		}
+
+		.positive {
+			color: #a6e22b;
+		}
+	</style>
+	<script type="text/javascript">
+		var gconst_vars = [
+			// general
+			"gconst_default_game_timelimit",
+			"gconst_expose_timers_to_lua",
+			"gconst_powerups_drop",
+			// movement/physics
+			"gconst_player_isbullet",
+			"gconst_double_jump_velocity",
+			"gconst_jump_velocity",
+			"gconst_playerinair_acceleration",
+			"gconst_playerinair_aircontrol",
+			"gconst_playerinair_bunny_accelerate",
+			"gconst_playerinair_bunny_wishspeed",
+			"gconst_playerinair_decceleration",
+			"gconst_playerinaircrouched_acceleration",
+			"gconst_playeronground_acceleration",
+			"gconst_playeronground_friction",
+			"gconst_playeronground_speed",
+			"gconst_playerongroundcrouched_speed",
+			"gconst_wallclipping",
+			"gconst_world_gravity",
+			//
+			"gconst_armor100_faratten",
+			"gconst_armor150_faratten",
+			"gconst_armor50_faratten",
+			"gconst_mega_faratten",
+			// melee
+			"gconst_melee_damage",
+			"gconst_melee_knockmult",
+			"gconst_melee_knockmult_airbourne",
+			"gconst_melee_range",
+			"gconst_melee_reload",
+			"gconst_melee_trace_radius",
+			// burst gun
+			"gconst_burst_damage",
+			"gconst_burst_knockmult",
+			"gconst_burst_knockmult_airbourne",
+			"gconst_burst_speed",
+			"gconst_burstgun_ammopickupammo",
+			"gconst_burstgun_burstsegments",
+			"gconst_burstgun_lowammo",
+			"gconst_burstgun_maxammo",
+			"gconst_burstgun_reload",
+			"gconst_burstgun_startammo",
+			"gconst_burstgun_weaponpickupammo",
+			// shotgun
+			"gconst_shotgun_pellet_damage",
+			"gconst_shotgun_pellet_knockmult",
+			"gconst_shotgun_pellet_knockmult_airbourne",
+			"gconst_shotgun_pellet_range",
+			"gconst_shotgun_pellet_trace_radius_entities",
+			"gconst_shotgun_pellet_trace_radius_world",
+			"gconst_shotgun_ammopickupammo",
+			"gconst_shotgun_lowammo",
+			"gconst_shotgun_maxammo",
+			"gconst_shotgun_reload",
+			"gconst_shotgun_weaponpickupammo",
+			// grenades
+			"gconst_grenade_damage",
+			"gconst_grenade_damage_splashmult",
+			"gconst_grenade_explosion_radius",
+			"gconst_grenade_gravity",
+			"gconst_grenade_speed_initial",
+			"gconst_grenade_trace_radius_entities",
+			"gconst_grenade_trace_radius_world",
+			"gconst_grenadelauncher_ammopickupammo",
+			"gconst_grenadelauncher_lowammo",
+			"gconst_grenadelauncher_maxammo",
+			"gconst_grenadelauncher_reload",
+			"gconst_grenadelauncher_weaponpickupammo",
+			// plasma
+			"gconst_cell_damage",
+			"gconst_cell_damage_splashmult",
+			"gconst_cell_explosion_radius",
+			"gconst_cell_knockmult",
+			"gconst_cell_knockmult_airbourne",
+			"gconst_cell_knockmult_self",
+			"gconst_cell_trace_radius_entities",
+			"gconst_cell_trace_radius_world",
+			"gconst_plasmarifle_ammopickupammo",
+			"gconst_plasmarifle_lowammo",
+			"gconst_plasmarifle_maxammo",
+			"gconst_plasmarifle_reload",
+			"gconst_plasmarifle_weaponpickupammo",
+			// rockets
+			"gconst_rocket_damage",
+			"gconst_rocket_damage_splashmult",
+			"gconst_rocket_explosion_radius",
+			"gconst_rocket_knockmult",
+			"gconst_rocket_knockmult_airbourne",
+			"gconst_rocket_knockmult_self",
+			"gconst_rocket_speed",
+			"gconst_rocket_trace_radius_entities",
+			"gconst_rocket_trace_radius_world",
+			"gconst_rocketlauncher_ammopickupammo",
+			"gconst_rocketlauncher_lowammo",
+			"gconst_rocketlauncher_maxammo",
+			"gconst_rocketlauncher_reload",
+			"gconst_rocketlauncher_weaponpickupammo",
+			// ion cannon
+			"gconst_beam_damage",
+			"gconst_beam_distance",
+			"gconst_beam_knockmult",
+			"gconst_beam_knockmult_airbourne",
+			"gconst_beam_trace_radius_entities",
+			"gconst_beam_trace_radius_world",
+			"gconst_ioncannon_ammopickupammo",
+			"gconst_ioncannon_hum",
+			"gconst_ioncannon_hum_faratten",
+			"gconst_ioncannon_lowammo",
+			"gconst_ioncannon_maxammo",
+			"gconst_ioncannon_reload",
+			"gconst_ioncannon_weaponpickupammo",
+			// bolt rifle
+			"gconst_bolt_damage",
+			"gconst_bolt_knockmult",
+			"gconst_bolt_knockmult_airbourne",
+			"gconst_bolt_range",
+			"gconst_bolt_trace_radius_entities",
+			"gconst_bolt_trace_radius_world",
+			"gconst_boltrifle_ammopickupammo",
+			"gconst_boltrifle_hum",
+			"gconst_boltrifle_hum_faratten",
+			"gconst_boltrifle_lowammo",
+			"gconst_boltrifle_maxammo",
+			"gconst_boltrifle_reload",
+			"gconst_boltrifle_weaponpickupammo",
+			// stake
+			"gconst_stake_damage",
+			"gconst_stake_gravity",
+			"gconst_stake_knockmult",
+			"gconst_stake_knockmult_airbourne",
+			"gconst_stake_radius",
+			"gconst_stake_speed",
+			"gconst_stake_trace_radius",
+			"gconst_stakelauncher_ammopickupammo",
+			"gconst_stakelauncher_enabled",
+			"gconst_stakelauncher_lowammo",
+			"gconst_stakelauncher_maxammo",
+			"gconst_stakelauncher_reload",
+			"gconst_stakelauncher_weaponpickupammo"
+		];
+
+		var bottoms = ["gconst_powerups_drop", "gconst_world_gravity", "gconst_mega_faratten", "gconst_melee_trace_radius", "gconst_burstgun_weaponpickupammo", "gconst_shotgun_weaponpickupammo", "gconst_grenadelauncher_weaponpickupammo", "gconst_plasmarifle_weaponpickupammo", "gconst_rocketlauncher_weaponpickupammo", "gconst_ioncannon_weaponpickupammo", "gconst_boltrifle_weaponpickupammo", "gconst_stakelauncher_weaponpickupammo"];
+
+		function parseRuleset(rulesetStr)
+		{
+			var ruleset = {};
+			rulesetStr.split("\n").forEach(function(line)
+			{
+				line = line.trim();
+				if(line.length > 0 && line.substring(0, 2) != "//")
+				{
+					line = line.split(" ");
+					ruleset[line[0]] = line[1];
+				}
+			});
+			return ruleset;
+		}
+
+		Number.prototype.countDecimals = function () {
+			if(Math.floor(this.valueOf()) === this.valueOf()) return 0;
+			return this.toString().split(".")[1].length || 0; 
+		}
+
+		function compare()
+		{
+			var ruleset1 = parseRuleset(document.getElementById("ruleset1").value);
+			var ruleset2 = parseRuleset(document.getElementById("ruleset2").value);
+			var conv2nums = document.getElementById("conv2nums").checked;
+			var roundnums = document.getElementById("roundnums").checked;
+			gconst_vars.forEach(function(gconst)
+			{
+				var cell_diff = document.getElementById("diff_" + gconst);
+				cell_diff.classList.remove("negative", "positive");
+				cell_diff.innerText = "";
+				var diff = Number(ruleset2[gconst]) - Number(ruleset1[gconst]);
+				if(conv2nums)
+				{
+					var gconst1_num = Number(ruleset1[gconst]);
+					var gconst2_num = Number(ruleset2[gconst]);
+					if(roundnums)
+					{
+						var decimals_num1 = Number.isNaN(gconst1_num) ? 0 : gconst1_num.countDecimals();
+						var decimals_num2 = Number.isNaN(gconst2_num) ? 0 : gconst2_num.countDecimals();
+						var decimals = Math.max(decimals_num1, decimals_num2);
+						gconst1_num = gconst1_num.toFixed(decimals);
+						gconst2_num = gconst2_num.toFixed(decimals);
+						diff = diff.toFixed(decimals);
+					}
+					document.getElementById("ruleset1_" + gconst).innerText = (gconst in ruleset1) ? gconst1_num : "";
+					document.getElementById("ruleset2_" + gconst).innerText = (gconst in ruleset2) ? gconst2_num : "";
+				}
+				else
+				{
+					document.getElementById("ruleset1_" + gconst).innerText = ruleset1[gconst];
+					document.getElementById("ruleset2_" + gconst).innerText = ruleset2[gconst];
+				}
+
+				if(!Number.isNaN(diff))
+				{
+					if(diff > 0)
+					{
+						cell_diff.classList.add("positive");
+						cell_diff.innerText = "+" + diff;
+					}
+					else if(diff < 0)
+					{
+						cell_diff.classList.add("negative");
+						cell_diff.innerText = diff;
+					}
+				}
+			});
+		}
+
+		function swap()
+		{
+			var text1 = document.getElementById("ruleset1");
+			var text2 = document.getElementById("ruleset2");
+			var dummy = text2.value;
+			text2.value = text1.value;
+			text1.value = dummy;
+		}
+	</script>
+</head>
+<body>
+	<div style="display: flex;">
+		<div style="">
+			<strong>Ruleset 1</strong>
+			<br>
+			<textarea id="ruleset1"></textarea>
+			<br>
+			<strong>Ruleset 2</strong>
+			<br>
+			<textarea id="ruleset2"></textarea>
+		<div style="">
+			<label><input type="checkbox" id="conv2nums" name="convcheck" checked> Convert to numbers</label>
+			<br>
+			<label><input type="checkbox" id="roundnums" name="roundcheck" checked> Round numbers</label>
+			<br>
+			<button onclick="compare()">Compare</button>
+			<button onclick="swap()">Swap</button>
+		</div>
+	</div>
+	<div>
+		<table id="difftable">
+			<tr>
+				<th>Variable</th>
+				<th>Value 1</th>
+				<th>Value 2</th>
+				<th>Difference</th>
+			</tr>
+		</table>
+	</div>
+	<script type="text/javascript">
+		(function()
+		{
+			gconst_vars.forEach(function(gconst)
+			{
+				var row = document.createElement("tr");
+
+				var cell_var = document.createElement("td");
+				cell_var.innerText = gconst;
+				cell_var.classList.add("var");
+
+				var cell_val1 = document.createElement("td");
+				cell_val1.id = "ruleset1_" + gconst;
+
+				var cell_val2 = document.createElement("td");
+				cell_val2.id = "ruleset2_" + gconst;
+
+				var cell_diff = document.createElement("td");
+				cell_diff.id = "diff_" + gconst;
+
+				if(bottoms.includes(gconst))
+				{
+					cell_var.classList.add("bottom")
+					cell_val1.classList.add("bottom")
+					cell_val2.classList.add("bottom")
+					cell_diff.classList.add("bottom")
+				}
+
+				row.appendChild(cell_var);
+				row.appendChild(cell_val1);
+				row.appendChild(cell_val2);
+				row.appendChild(cell_diff);
+
+				document.getElementById("difftable").appendChild(row);
+			});
+		}
+		)();
+	</script>
+</body>
+</html>
