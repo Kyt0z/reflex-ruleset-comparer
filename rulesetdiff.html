@@ -35,11 +35,11 @@
 			border-bottom: solid 1px #403d32;
 		}
 
-		#difftable .var {
+		#difftable .variable {
 			border-right: solid 1px #403d32;
 		}
 
-		.var {
+		.variable {
 			color: #e7db74;
 		}
 
@@ -52,7 +52,7 @@
 		}
 	</style>
 	<script type="text/javascript">
-		var gconst_vars = [
+		const gconst = [
 			// general
 			"gconst_default_game_timelimit",
 			"gconst_expose_timers_to_lua",
@@ -73,7 +73,7 @@
 			"gconst_playerongroundcrouched_speed",
 			"gconst_wallclipping",
 			"gconst_world_gravity",
-			//
+			// sound
 			"gconst_armor100_faratten",
 			"gconst_armor150_faratten",
 			"gconst_armor50_faratten",
@@ -195,12 +195,12 @@
 			"gconst_stakelauncher_weaponpickupammo"
 		];
 
-		var bottoms = ["gconst_powerups_drop", "gconst_world_gravity", "gconst_mega_faratten", "gconst_melee_trace_radius", "gconst_burstgun_weaponpickupammo", "gconst_shotgun_weaponpickupammo", "gconst_grenadelauncher_weaponpickupammo", "gconst_plasmarifle_weaponpickupammo", "gconst_rocketlauncher_weaponpickupammo", "gconst_ioncannon_weaponpickupammo", "gconst_boltrifle_weaponpickupammo", "gconst_stakelauncher_weaponpickupammo"];
+		const bottoms = ["gconst_powerups_drop", "gconst_world_gravity", "gconst_mega_faratten", "gconst_melee_trace_radius", "gconst_burstgun_weaponpickupammo", "gconst_shotgun_weaponpickupammo", "gconst_grenadelauncher_weaponpickupammo", "gconst_plasmarifle_weaponpickupammo", "gconst_rocketlauncher_weaponpickupammo", "gconst_ioncannon_weaponpickupammo", "gconst_boltrifle_weaponpickupammo", "gconst_stakelauncher_weaponpickupammo"];
 
 		function parseRuleset(rulesetStr)
 		{
-			var ruleset = {};
-			rulesetStr.split("\n").forEach(function(line)
+			let ruleset = {};
+			for(let line of rulesetStr.split("\n"))
 			{
 				line = line.trim();
 				if(line.length > 0 && line.substring(0, 2) != "//")
@@ -208,72 +208,87 @@
 					line = line.split(" ");
 					ruleset[line[0]] = line[1];
 				}
-			});
+			}
 			return ruleset;
 		}
 
-		Number.prototype.countDecimals = function () {
-			if(Math.floor(this.valueOf()) === this.valueOf()) return 0;
-			return this.toString().split(".")[1].length || 0; 
+		function countDecimals(num)
+		{
+			const numStrs = num.toString().split(".");
+			if(numStrs.length < 2)
+				return 0;
+			return numStrs[1].length;
 		}
 
-		function compare()
+		function compareFiles()
 		{
-			var ruleset1 = parseRuleset(document.getElementById("ruleset1").value);
-			var ruleset2 = parseRuleset(document.getElementById("ruleset2").value);
-			var conv2nums = document.getElementById("conv2nums").checked;
-			var roundnums = document.getElementById("roundnums").checked;
-			gconst_vars.forEach(function(gconst)
+			const fileInput1 = document.getElementById("ruleset1").files[0];
+			const fileInput2 = document.getElementById("ruleset2").files[0];
+
+			if(!fileInput1 || !fileInput2)
+				return;
+
+			document.getElementById("rulesetName1").innerText = fileInput1.name.replace(".cfg", "");
+			document.getElementById("rulesetName2").innerText = fileInput2.name.replace(".cfg", "");
+
+			const reader1 = new FileReader();
+			const reader2 = new FileReader();
+			reader1.onload = function(event)
 			{
-				var cell_diff = document.getElementById("diff_" + gconst);
-				cell_diff.classList.remove("negative", "positive");
-				cell_diff.innerText = "";
-				var diff = Number(ruleset2[gconst]) - Number(ruleset1[gconst]);
-				if(conv2nums)
+				const ruleset1 = parseRuleset(event.target.result);
+				reader2.onload = function(event)
 				{
-					var gconst1_num = Number(ruleset1[gconst]);
-					var gconst2_num = Number(ruleset2[gconst]);
-					if(roundnums)
-					{
-						var decimals_num1 = Number.isNaN(gconst1_num) ? 0 : gconst1_num.countDecimals();
-						var decimals_num2 = Number.isNaN(gconst2_num) ? 0 : gconst2_num.countDecimals();
-						var decimals = Math.max(decimals_num1, decimals_num2);
-						gconst1_num = gconst1_num.toFixed(decimals);
-						gconst2_num = gconst2_num.toFixed(decimals);
-						diff = diff.toFixed(decimals);
-					}
-					document.getElementById("ruleset1_" + gconst).innerText = (gconst in ruleset1) ? gconst1_num : "";
-					document.getElementById("ruleset2_" + gconst).innerText = (gconst in ruleset2) ? gconst2_num : "";
-				}
-				else
-				{
-					document.getElementById("ruleset1_" + gconst).innerText = ruleset1[gconst];
-					document.getElementById("ruleset2_" + gconst).innerText = ruleset2[gconst];
-				}
+					const ruleset2 = parseRuleset(event.target.result);
 
-				if(!Number.isNaN(diff))
-				{
-					if(diff > 0)
+					const convertToNumbers = document.getElementById("convertToNumbers").checked;
+					const roundNumbers = document.getElementById("roundNumbers").checked;
+					for(const gconstVar of gconst)
 					{
-						cell_diff.classList.add("positive");
-						cell_diff.innerText = "+" + diff;
-					}
-					else if(diff < 0)
-					{
-						cell_diff.classList.add("negative");
-						cell_diff.innerText = diff;
-					}
-				}
-			});
-		}
+						const diffCell = document.getElementById(`diff_${gconstVar}`);
+						diffCell.classList.remove("negative", "positive");
+						diffCell.innerText = "";
 
-		function swap()
-		{
-			var text1 = document.getElementById("ruleset1");
-			var text2 = document.getElementById("ruleset2");
-			var dummy = text2.value;
-			text2.value = text1.value;
-			text1.value = dummy;
+						let gconstNum1 = ruleset1[gconstVar];
+						let gconstNum2 = ruleset2[gconstVar];
+						let diffValue = Number(gconstNum2) - Number(gconstNum1);
+						if(convertToNumbers)
+						{
+							gconstNum1 = Number(gconstNum1);
+							gconstNum2 = Number(gconstNum2);
+							if(roundNumbers)
+							{
+								const decimals = Math.max(countDecimals(gconstNum1), countDecimals(gconstNum2));
+								gconstNum1 = gconstNum1.toFixed(decimals);
+								gconstNum2 = gconstNum2.toFixed(decimals);
+								diffValue = diffValue.toFixed(decimals);
+							}
+							document.getElementById(`ruleset1_${gconstVar}`).innerText = (gconstVar in ruleset1) ? gconstNum1 : "";
+							document.getElementById(`ruleset2_${gconstVar}`).innerText = (gconstVar in ruleset2) ? gconstNum2 : "";
+						}
+						else
+						{
+							document.getElementById(`ruleset1_${gconstVar}`).innerText = ruleset1[gconstVar];
+							document.getElementById(`ruleset2_${gconstVar}`).innerText = ruleset2[gconstVar];
+						}
+
+						if(!Number.isNaN(diffValue))
+						{
+							if(diffValue > 0)
+							{
+								diffCell.classList.add("positive");
+								diffCell.innerText = `+${diffValue}`;
+							}
+							else if(diffValue < 0)
+							{
+								diffCell.classList.add("negative");
+								diffCell.innerText = diffValue;
+							}
+						}
+					}
+				};
+				reader2.readAsText(fileInput2);
+			};
+			reader1.readAsText(fileInput1);
 		}
 	</script>
 </head>
@@ -282,65 +297,67 @@
 		<div style="">
 			<strong>Ruleset 1</strong>
 			<br>
-			<textarea id="ruleset1"></textarea>
+			<input type="file" accept=".cfg" id="ruleset1">
+			<br>
 			<br>
 			<strong>Ruleset 2</strong>
 			<br>
-			<textarea id="ruleset2"></textarea>
+			<input type="file" accept=".cfg" id="ruleset2">
 		<div style="">
-			<label><input type="checkbox" id="conv2nums" name="convcheck" checked> Convert to numbers</label>
 			<br>
-			<label><input type="checkbox" id="roundnums" name="roundcheck" checked> Round numbers</label>
+			<label><input type="checkbox" id="convertToNumbers" name="convcheck" checked> Convert to numbers</label>
 			<br>
-			<button onclick="compare()">Compare</button>
-			<button onclick="swap()">Swap</button>
+			<label><input type="checkbox" id="roundNumbers" name="roundcheck" checked> Round numbers</label>
+			<br>
+			<br>
+			<button onclick="compareFiles()">Compare</button>
 		</div>
 	</div>
 	<div>
 		<table id="difftable">
 			<tr>
 				<th>Variable</th>
-				<th>Value 1</th>
-				<th>Value 2</th>
-				<th>Difference</th>
+				<th id="rulesetName1">Ruleset 1</th>
+				<th id="rulesetName2">Ruleset 2</th>
+				<th>Change</th>
 			</tr>
 		</table>
 	</div>
 	<script type="text/javascript">
 		(function()
 		{
-			gconst_vars.forEach(function(gconst)
+			for(const gconstVar of gconst)
 			{
-				var row = document.createElement("tr");
+				const row = document.createElement("tr");
 
-				var cell_var = document.createElement("td");
-				cell_var.innerText = gconst;
-				cell_var.classList.add("var");
+				const variableCell = document.createElement("td");
+				variableCell.innerText = gconstVar;
+				variableCell.classList.add("variable");
 
-				var cell_val1 = document.createElement("td");
-				cell_val1.id = "ruleset1_" + gconst;
+				const valueCell1 = document.createElement("td");
+				valueCell1.id = `ruleset1_${gconstVar}`;
 
-				var cell_val2 = document.createElement("td");
-				cell_val2.id = "ruleset2_" + gconst;
+				const valueCell2 = document.createElement("td");
+				valueCell2.id = `ruleset2_${gconstVar}`;
 
-				var cell_diff = document.createElement("td");
-				cell_diff.id = "diff_" + gconst;
+				const diffCell = document.createElement("td");
+				diffCell.id = `diff_${gconstVar}`;
 
-				if(bottoms.includes(gconst))
+				if(bottoms.includes(gconstVar))
 				{
-					cell_var.classList.add("bottom")
-					cell_val1.classList.add("bottom")
-					cell_val2.classList.add("bottom")
-					cell_diff.classList.add("bottom")
+					variableCell.classList.add("bottom");
+					valueCell1.classList.add("bottom");
+					valueCell2.classList.add("bottom");
+					diffCell.classList.add("bottom");
 				}
 
-				row.appendChild(cell_var);
-				row.appendChild(cell_val1);
-				row.appendChild(cell_val2);
-				row.appendChild(cell_diff);
+				row.appendChild(variableCell);
+				row.appendChild(valueCell1);
+				row.appendChild(valueCell2);
+				row.appendChild(diffCell);
 
 				document.getElementById("difftable").appendChild(row);
-			});
+			}
 		}
 		)();
 	</script>
