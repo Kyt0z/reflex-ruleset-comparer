@@ -84,152 +84,163 @@
 		}
 	</style>
 	<script type="text/javascript">
-		const gconst = {
-			"gconst_default_game_timelimit": "10",
-			"gconst_expose_timers_to_lua": "0",
-			"gconst_powerups_drop": "1",
-
-			"gconst_player_isbullet": "1",
-			"gconst_double_jump_velocity": "105",
-			"gconst_jump_velocity": "255",
-			"gconst_playerinair_acceleration": "0.95",
-			"gconst_playerinair_aircontrol": "150",
-			"gconst_playerinair_bunny_accelerate": "60",
-			"gconst_playerinair_bunny_wishspeed": "30",
-			"gconst_playerinair_decceleration": "2.5",
-			"gconst_playerinaircrouched_acceleration": "0.475",
-			"gconst_playeronground_acceleration": "4000",
-			"gconst_playeronground_friction": "6",
-			"gconst_playeronground_speed": "320",
-			"gconst_playerongroundcrouched_speed": "120",
-			"gconst_wallclipping": "1",
-			"gconst_world_gravity": "750",
-
-			"gconst_armor100_faratten": "2200",
-			"gconst_armor150_faratten": "2200",
-			"gconst_armor50_faratten": "2200",
-			"gconst_mega_faratten": "2200",
-
-			"gconst_melee_damage": "80",
-			"gconst_melee_knockmult": "1.57",
-			"gconst_melee_knockmult_airbourne": "0.94",
-			"gconst_melee_range": "68",
-			"gconst_melee_reload": "800",
-			"gconst_melee_trace_radius": "10",
-
-			"gconst_burst_damage": "6",
-			"gconst_burst_knockmult": "1.25",
-			"gconst_burst_knockmult_airbourne": "1.5",
-			"gconst_burst_speed": "4000",
-			"gconst_burstgun_ammopickupammo": "10",
-			"gconst_burstgun_burstsegments": "6",
-			"gconst_burstgun_lowammo": "5",
-			"gconst_burstgun_maxammo": "20",
-			"gconst_burstgun_reload": "450",
-			"gconst_burstgun_startammo": "10",
-			"gconst_burstgun_weaponpickupammo": "10",
-
-			"gconst_shotgun_pellet_damage": "5",
-			"gconst_shotgun_pellet_knockmult": "1.6",
-			"gconst_shotgun_pellet_knockmult_airbourne": "1.4",
-			"gconst_shotgun_pellet_range": "4096",
-			"gconst_shotgun_pellet_trace_radius_entities": "0.75",
-			"gconst_shotgun_pellet_trace_radius_world": "0.75",
-			"gconst_shotgun_ammopickupammo": "6",
-			"gconst_shotgun_lowammo": "3",
-			"gconst_shotgun_maxammo": "12",
-			"gconst_shotgun_reload": "900",
-			"gconst_shotgun_weaponpickupammo": "6",
-
-			"gconst_grenade_damage": "100",
-			"gconst_grenade_damage_splashmult": "0.85",
-			"gconst_grenade_explosion_radius": "180",
-			"gconst_grenade_gravity": "700",
-			"gconst_grenade_speed_initial": "700",
-			"gconst_grenade_trace_radius_entities": "2",
-			"gconst_grenade_trace_radius_world": "2",
-			"gconst_grenadelauncher_ammopickupammo": "5",
-			"gconst_grenadelauncher_lowammo": "2",
-			"gconst_grenadelauncher_maxammo": "10",
-			"gconst_grenadelauncher_reload": "800",
-			"gconst_grenadelauncher_weaponpickupammo": "5",
-
-			"gconst_cell_damage": "16",
-			"gconst_cell_damage_splashmult": "1",
-			"gconst_cell_explosion_radius": "32",
-			"gconst_cell_knockmult": "0.85",
-			"gconst_cell_knockmult_airbourne": "1",
-			"gconst_cell_knockmult_self": "2",
-			"gconst_cell_trace_radius_entities": "2.5",
-			"gconst_cell_trace_radius_world": "2.5",
-			"gconst_plasmarifle_ammopickupammo": "50",
-			"gconst_plasmarifle_lowammo": "25",
-			"gconst_plasmarifle_maxammo": "100",
-			"gconst_plasmarifle_reload": "100",
-			"gconst_plasmarifle_weaponpickupammo": "50",
-
-			"gconst_rocket_damage": "100",
-			"gconst_rocket_damage_splashmult": "0.85",
-			"gconst_rocket_explosion_radius": "120",
-			"gconst_rocket_knockmult": "0.85",
-			"gconst_rocket_knockmult_airbourne": "1",
-			"gconst_rocket_knockmult_self": "1.12",
-			"gconst_rocket_speed": "1000",
-			"gconst_rocket_trace_radius_entities": "1.25",
-			"gconst_rocket_trace_radius_world": "1.25",
-			"gconst_rocketlauncher_ammopickupammo": "8",
-			"gconst_rocketlauncher_lowammo": "4",
-			"gconst_rocketlauncher_maxammo": "16",
-			"gconst_rocketlauncher_reload": "800",
-			"gconst_rocketlauncher_weaponpickupammo": "8",
-
-			"gconst_beam_damage": "6",
-			"gconst_beam_distance": "768",
-			"gconst_beam_knockmult": "1.6",
-			"gconst_beam_knockmult_airbourne": "1.6",
-			"gconst_beam_trace_radius_entities": "0.75",
-			"gconst_beam_trace_radius_world": "0.75",
-			"gconst_ioncannon_ammopickupammo": "75",
-			"gconst_ioncannon_hum": "1",
-			"gconst_ioncannon_hum_faratten": "1250",
-			"gconst_ioncannon_lowammo": "35",
-			"gconst_ioncannon_maxammo": "150",
-			"gconst_ioncannon_reload": "44",
-			"gconst_ioncannon_weaponpickupammo": "75",
-
-			"gconst_bolt_damage": "80",
-			"gconst_bolt_knockmult": "0.5",
-			"gconst_bolt_knockmult_airbourne": "0.5",
-			"gconst_bolt_range": "16384",
-			"gconst_bolt_trace_radius_entities": "0.75",
-			"gconst_bolt_trace_radius_world": "0.75",
-			"gconst_boltrifle_ammopickupammo": "5",
-			"gconst_boltrifle_hum": "1",
-			"gconst_boltrifle_hum_faratten": "1500",
-			"gconst_boltrifle_lowammo": "2",
-			"gconst_boltrifle_maxammo": "10",
-			"gconst_boltrifle_reload": "1375",
-			"gconst_boltrifle_weaponpickupammo": "5",
-
-			"gconst_stake_damage": "100",
-			"gconst_stake_gravity": "700",
-			"gconst_stake_knockmult": "1",
-			"gconst_stake_knockmult_airbourne": "1",
-			"gconst_stake_radius": "2",
-			"gconst_stake_speed": "3500",
-			"gconst_stake_trace_radius": "1",
-			"gconst_stakelauncher_ammopickupammo": "5",
-			"gconst_stakelauncher_enabled": "0",
-			"gconst_stakelauncher_lowammo": "5",
-			"gconst_stakelauncher_maxammo": "20",
-			"gconst_stakelauncher_reload": "1250",
-			"gconst_stakelauncher_weaponpickupammo": "10"
-		};
-
-		const bottoms = ["gconst_powerups_drop", "gconst_world_gravity", "gconst_mega_faratten", "gconst_melee_trace_radius", "gconst_burstgun_weaponpickupammo", "gconst_shotgun_weaponpickupammo", "gconst_grenadelauncher_weaponpickupammo", "gconst_plasmarifle_weaponpickupammo", "gconst_rocketlauncher_weaponpickupammo", "gconst_ioncannon_weaponpickupammo", "gconst_boltrifle_weaponpickupammo", "gconst_stakelauncher_weaponpickupammo"];
+		const gconst = [
+			{
+				"gconst_default_game_timelimit": "10",
+				"gconst_expose_timers_to_lua": "0",
+				"gconst_powerups_drop": "1"
+			},
+			{
+				"gconst_player_isbullet": "1",
+				"gconst_double_jump_velocity": "105",
+				"gconst_jump_velocity": "255",
+				"gconst_playerinair_acceleration": "0.95",
+				"gconst_playerinair_aircontrol": "150",
+				"gconst_playerinair_bunny_accelerate": "60",
+				"gconst_playerinair_bunny_wishspeed": "30",
+				"gconst_playerinair_decceleration": "2.5",
+				"gconst_playerinaircrouched_acceleration": "0.475",
+				"gconst_playeronground_acceleration": "4000",
+				"gconst_playeronground_friction": "6",
+				"gconst_playeronground_speed": "320",
+				"gconst_playerongroundcrouched_speed": "120",
+				"gconst_wallclipping": "1",
+				"gconst_world_gravity": "750"
+			},
+			{
+				"gconst_armor100_faratten": "2200",
+				"gconst_armor150_faratten": "2200",
+				"gconst_armor50_faratten": "2200",
+				"gconst_mega_faratten": "2200"
+			},
+			{
+				"gconst_melee_damage": "80",
+				"gconst_melee_knockmult": "1.57",
+				"gconst_melee_knockmult_airbourne": "0.94",
+				"gconst_melee_range": "68",
+				"gconst_melee_reload": "800",
+				"gconst_melee_trace_radius": "10"
+			},
+			{
+				"gconst_burst_damage": "6",
+				"gconst_burst_knockmult": "1.25",
+				"gconst_burst_knockmult_airbourne": "1.5",
+				"gconst_burst_speed": "4000",
+				"gconst_burstgun_ammopickupammo": "10",
+				"gconst_burstgun_burstsegments": "6",
+				"gconst_burstgun_lowammo": "5",
+				"gconst_burstgun_maxammo": "20",
+				"gconst_burstgun_reload": "450",
+				"gconst_burstgun_startammo": "10",
+				"gconst_burstgun_weaponpickupammo": "10"
+			},
+			{
+				"gconst_shotgun_pellet_damage": "5",
+				"gconst_shotgun_pellet_knockmult": "1.6",
+				"gconst_shotgun_pellet_knockmult_airbourne": "1.4",
+				"gconst_shotgun_pellet_range": "4096",
+				"gconst_shotgun_pellet_trace_radius_entities": "0.75",
+				"gconst_shotgun_pellet_trace_radius_world": "0.75",
+				"gconst_shotgun_ammopickupammo": "6",
+				"gconst_shotgun_lowammo": "3",
+				"gconst_shotgun_maxammo": "12",
+				"gconst_shotgun_reload": "900",
+				"gconst_shotgun_weaponpickupammo": "6"
+			},
+			{
+				"gconst_grenade_damage": "100",
+				"gconst_grenade_damage_splashmult": "0.85",
+				"gconst_grenade_explosion_radius": "180",
+				"gconst_grenade_gravity": "700",
+				"gconst_grenade_speed_initial": "700",
+				"gconst_grenade_trace_radius_entities": "2",
+				"gconst_grenade_trace_radius_world": "2",
+				"gconst_grenadelauncher_ammopickupammo": "5",
+				"gconst_grenadelauncher_lowammo": "2",
+				"gconst_grenadelauncher_maxammo": "10",
+				"gconst_grenadelauncher_reload": "800",
+				"gconst_grenadelauncher_weaponpickupammo": "5"
+			},
+			{
+				"gconst_cell_damage": "16",
+				"gconst_cell_damage_splashmult": "1",
+				"gconst_cell_explosion_radius": "32",
+				"gconst_cell_knockmult": "0.85",
+				"gconst_cell_knockmult_airbourne": "1",
+				"gconst_cell_knockmult_self": "2",
+				"gconst_cell_trace_radius_entities": "2.5",
+				"gconst_cell_trace_radius_world": "2.5",
+				"gconst_plasmarifle_ammopickupammo": "50",
+				"gconst_plasmarifle_lowammo": "25",
+				"gconst_plasmarifle_maxammo": "100",
+				"gconst_plasmarifle_reload": "100",
+				"gconst_plasmarifle_weaponpickupammo": "50"
+			},
+			{
+				"gconst_rocket_damage": "100",
+				"gconst_rocket_damage_splashmult": "0.85",
+				"gconst_rocket_explosion_radius": "120",
+				"gconst_rocket_knockmult": "0.85",
+				"gconst_rocket_knockmult_airbourne": "1",
+				"gconst_rocket_knockmult_self": "1.12",
+				"gconst_rocket_speed": "1000",
+				"gconst_rocket_trace_radius_entities": "1.25",
+				"gconst_rocket_trace_radius_world": "1.25",
+				"gconst_rocketlauncher_ammopickupammo": "8",
+				"gconst_rocketlauncher_lowammo": "4",
+				"gconst_rocketlauncher_maxammo": "16",
+				"gconst_rocketlauncher_reload": "800",
+				"gconst_rocketlauncher_weaponpickupammo": "8"
+			},
+			{
+				"gconst_beam_damage": "6",
+				"gconst_beam_distance": "768",
+				"gconst_beam_knockmult": "1.6",
+				"gconst_beam_knockmult_airbourne": "1.6",
+				"gconst_beam_trace_radius_entities": "0.75",
+				"gconst_beam_trace_radius_world": "0.75",
+				"gconst_ioncannon_ammopickupammo": "75",
+				"gconst_ioncannon_hum": "1",
+				"gconst_ioncannon_hum_faratten": "1250",
+				"gconst_ioncannon_lowammo": "35",
+				"gconst_ioncannon_maxammo": "150",
+				"gconst_ioncannon_reload": "44",
+				"gconst_ioncannon_weaponpickupammo": "75"
+			},
+			{
+				"gconst_bolt_damage": "80",
+				"gconst_bolt_knockmult": "0.5",
+				"gconst_bolt_knockmult_airbourne": "0.5",
+				"gconst_bolt_range": "16384",
+				"gconst_bolt_trace_radius_entities": "0.75",
+				"gconst_bolt_trace_radius_world": "0.75",
+				"gconst_boltrifle_ammopickupammo": "5",
+				"gconst_boltrifle_hum": "1",
+				"gconst_boltrifle_hum_faratten": "1500",
+				"gconst_boltrifle_lowammo": "2",
+				"gconst_boltrifle_maxammo": "10",
+				"gconst_boltrifle_reload": "1375",
+				"gconst_boltrifle_weaponpickupammo": "5"
+			},
+			{
+				"gconst_stake_damage": "100",
+				"gconst_stake_gravity": "700",
+				"gconst_stake_knockmult": "1",
+				"gconst_stake_knockmult_airbourne": "1",
+				"gconst_stake_radius": "2",
+				"gconst_stake_speed": "3500",
+				"gconst_stake_trace_radius": "1",
+				"gconst_stakelauncher_ammopickupammo": "5",
+				"gconst_stakelauncher_enabled": "0",
+				"gconst_stakelauncher_lowammo": "5",
+				"gconst_stakelauncher_maxammo": "20",
+				"gconst_stakelauncher_reload": "1250",
+				"gconst_stakelauncher_weaponpickupammo": "10"
+			}
+		];
 
 		const sign = [
-			{"symbol": "", "literal": "negative", "change": "decreased", "absolute": "disabled"},
+			{"symbol": "-", "literal": "negative", "change": "decreased", "absolute": "disabled"},
 			{"symbol": "+", "literal": "positive", "change": "increased", "absolute": "enabled"}
 		];
 		const shape = ["pill", "bullet"];
@@ -261,7 +272,7 @@
 			}
 		}
 
-		function validFileInputs()
+		function validFileInputs(num)
 		{
 			ruleset[0].file = document.getElementById("ruleset1").files[0];
 			ruleset[1].file = document.getElementById("ruleset2").files[0];
@@ -270,15 +281,16 @@
 
 		function compareFiles()
 		{
-			const roundNumbersCheck = document.getElementById("roundNumbers");
-			if(document.getElementById("convertToNumbers").checked)
+			const convertToNumbers = document.getElementById("convertToNumbers");
+			const roundNumbers = document.getElementById("roundNumbers");
+			if(convertToNumbers.checked)
 			{
-				roundNumbersCheck.disabled = false;
+				roundNumbers.disabled = false;
 			}
 			else
 			{
-				roundNumbersCheck.checked = false
-				roundNumbersCheck.disabled = true;
+				roundNumbers.checked = false
+				roundNumbers.disabled = true;
 			}
 
 			if(!validFileInputs())
@@ -306,101 +318,102 @@
 					const changelog = document.getElementById("changelog");
 					changelog.textContent = `Changes from ${ruleset[0].name} to ${ruleset[1].name}:\n\n`;
 
-					const convertToNumbers = document.getElementById("convertToNumbers").checked;
-					const roundNumbers = document.getElementById("roundNumbers").checked;
-					for(const [gconstVar, gconstVal] of Object.entries(gconst))
+					for(const gconstGroup of gconst)
 					{
-						const gconstCell0 = document.getElementById(`ruleset0_${gconstVar}`);
-						gconstCell0.classList.add("unset");
-
-						const gconstCell1 = document.getElementById(`ruleset1_${gconstVar}`);
-						gconstCell1.classList.remove("unset");
-						gconstCell1.innerText = "";
-
-						const gconstCell2 = document.getElementById(`ruleset2_${gconstVar}`);
-						gconstCell2.classList.remove("unset");
-						gconstCell2.innerText = "";
-
-						const diffCell = document.getElementById(`diff_${gconstVar}`);
-						diffCell.classList.remove("negative", "positive");
-						diffCell.innerText = "";
-
-						let gconstNum1 = ruleset[0][gconstVar];
-						let gconstNum2 = ruleset[1][gconstVar];
-						if(gconstNum1 === undefined && gconstNum2 === undefined)
+						const gconstGroupLastVar = Object.keys(gconstGroup).slice(-1)[0];
+						for(const [gconstVar, gconstVal] of Object.entries(gconstGroup))
 						{
-							gconstNum1 = gconstVal;
-							gconstNum2 = gconstVal;
-							gconstCell0.classList.remove("unset");
-							gconstCell1.classList.add("unset");
-							gconstCell2.classList.add("unset");
-						}
-						else if(gconstNum1 === undefined)
-						{
-							gconstNum1 = gconstVal;
-							gconstCell0.classList.remove("unset");
-							gconstCell1.classList.add("unset");
-						}
-						else if(gconstNum2 === undefined)
-						{
-							gconstNum2 = gconstVal;
-							gconstCell0.classList.remove("unset");
-							gconstCell2.classList.add("unset");
-						}
+							const gconstCell0 = document.getElementById(`ruleset0_${gconstVar}`);
+							gconstCell0.classList.add("unset");
 
-						let gconstDiff = Number(gconstNum2) - Number(gconstNum1);
-						console.log(gconstNum1, gconstNum2, gconstDiff)
-						const decimals = Math.max(countDecimals(gconstNum1), countDecimals(gconstNum2));
-						if(convertToNumbers)
-						{
-							gconstNum1 = Number(gconstNum1);
-							gconstNum2 = Number(gconstNum2);
-							if(roundNumbers)
+							const gconstCell1 = document.getElementById(`ruleset1_${gconstVar}`);
+							gconstCell1.classList.remove("unset");
+							gconstCell1.innerText = "";
+
+							const gconstCell2 = document.getElementById(`ruleset2_${gconstVar}`);
+							gconstCell2.classList.remove("unset");
+							gconstCell2.innerText = "";
+
+							const diffCell = document.getElementById(`diff_${gconstVar}`);
+							diffCell.classList.remove("negative", "positive");
+							diffCell.innerText = "";
+
+							let gconstNum1 = ruleset[0][gconstVar];
+							let gconstNum2 = ruleset[1][gconstVar];
+							if(gconstNum1 === undefined && gconstNum2 === undefined)
 							{
-								gconstNum1 = gconstNum1.toFixed(decimals);
-								gconstNum2 = gconstNum2.toFixed(decimals);
-								gconstDiff = gconstDiff.toFixed(decimals);
+								gconstNum1 = gconstVal;
+								gconstNum2 = gconstVal;
+								gconstCell0.classList.remove("unset");
+								gconstCell1.classList.add("unset");
+								gconstCell2.classList.add("unset");
+							}
+							else if(gconstNum1 === undefined)
+							{
+								gconstNum1 = gconstVal;
+								gconstCell0.classList.remove("unset");
+								gconstCell1.classList.add("unset");
+							}
+							else if(gconstNum2 === undefined)
+							{
+								gconstNum2 = gconstVal;
+								gconstCell0.classList.remove("unset");
+								gconstCell2.classList.add("unset");
+							}
+
+							let gconstDiff = Number(gconstNum2) - Number(gconstNum1);
+							if(convertToNumbers.checked)
+							{
+								gconstNum1 = Number(gconstNum1);
+								gconstNum2 = Number(gconstNum2);
+								if(roundNumbers.checked)
+								{
+									const decimals = Math.max(countDecimals(gconstNum1), countDecimals(gconstNum2));
+									gconstNum1 = gconstNum1.toFixed(decimals);
+									gconstNum2 = gconstNum2.toFixed(decimals);
+									gconstDiff = gconstDiff.toFixed(decimals);
+								}
+							}
+							gconstCell1.innerText = gconstNum1;
+							gconstCell2.innerText = gconstNum2;
+
+							if(gconstDiff != 0)
+							{
+								const diff = +(gconstDiff > 0);
+
+								diffCell.classList.add(sign[diff].literal);
+								diffCell.innerText = `${sign[diff].symbol}${Math.abs(gconstDiff)}`;
+
+								switch(gconstVar)
+								{
+									case "gconst_player_isbullet":
+										changelog.textContent += `Player hitbox changed from ${shape[gconstNum1]} to ${shape[gconstNum2]}`;
+										break;
+									case "gconst_expose_timers_to_lua":
+									case "gconst_powerups_drop":
+									case "gconst_wallclipping":
+										changelog.textContent += `${gconstVar} ${sign[diff].absolute}`;
+										break;
+									default:
+										const diffRelative = Number(gconstDiff / gconstNum1 * 100);
+										const decimalsRelative = Math.min(countDecimals(diffRelative.toString()), 2);
+										changelog.textContent += `${gconstVar} ${sign[diff].change} from ${gconstNum1} to ${gconstNum2}`
+										changelog.textContent += ` (${sign[diff].symbol}${Math.abs(diffRelative.toFixed(decimalsRelative))}%)`;
+								}
+								changelog.textContent += "\n";
+							}
+
+							ruleset[0].str += `${gconstVar} ${gconstNum1}\n`;
+							ruleset[1].str += `${gconstVar} ${gconstNum2}\n`;
+							if(gconstVar == gconstGroupLastVar)
+							{
+								ruleset[0].str += "\n";
+								ruleset[1].str += "\n";
+								
+								if(changelog.textContent.slice(-2) != "\n\n")
+									changelog.textContent += "\n";
 							}
 						}
-						gconstCell1.innerText = gconstNum1;
-						gconstCell2.innerText = gconstNum2;
-
-						ruleset[0].str += `${gconstVar} ${gconstNum1}\n`;
-						ruleset[1].str += `${gconstVar} ${gconstNum2}\n`;
-						if(bottoms.includes(gconstVar))
-						{
-							ruleset[0].str += "\n";
-							ruleset[1].str += "\n";
-						}
-
-						if(gconstDiff != 0)
-						{
-							const diff = +(gconstDiff > 0);
-
-							diffCell.classList.add(sign[diff].literal);
-							diffCell.innerText = `${sign[diff].symbol}${gconstDiff}`;
-
-							switch(gconstVar)
-							{
-								case "gconst_player_isbullet":
-									changelog.textContent += `Player hitbox changed from ${shape[gconstNum1]} to ${shape[gconstNum2]}`;
-									break;
-								case "gconst_expose_timers_to_lua":
-								case "gconst_powerups_drop":
-								case "gconst_wallclipping":
-									changelog.textContent += `${gconstVar} ${sign[diff].absolute}`;
-									break;
-								default:
-									const diffRelative = Number(gconstDiff / gconstNum1 * 100);
-									const decimals = Math.min(countDecimals(diffRelative.toString()), 2);
-									changelog.textContent += `${gconstVar} ${sign[diff].change} from ${gconstNum1} to ${gconstNum2}`
-									changelog.textContent += ` (${sign[diff].symbol}${diffRelative.toFixed(decimals)}%)`;
-							}
-							changelog.textContent += "\n";
-						}
-
-						if(bottoms.includes(gconstVar) && changelog.textContent.slice(-2) != "\n\n")
-							changelog.textContent += "\n";
 					}
 					ruleset[0].str = ruleset[0].str.slice(0, -2);
 					ruleset[1].str = ruleset[1].str.slice(0, -2);
@@ -477,44 +490,48 @@
 	<script type="text/javascript">
 		(function()
 		{
-			for(const [gconstVar, gconstVal] of Object.entries(gconst))
+			for(const gconstGroup of gconst)
 			{
-				const row = document.createElement("tr");
-
-				const variableCell = document.createElement("td");
-				variableCell.innerText = gconstVar;
-				variableCell.classList.add("variable");
-
-				const valueCellComp = document.createElement("td");
-				valueCellComp.id = `ruleset0_${gconstVar}`;
-				valueCellComp.innerText = gconstVal;
-				valueCellComp.classList.add("comp");
-
-				const valueCell1 = document.createElement("td");
-				valueCell1.id = `ruleset1_${gconstVar}`;
-
-				const valueCell2 = document.createElement("td");
-				valueCell2.id = `ruleset2_${gconstVar}`;
-
-				const diffCell = document.createElement("td");
-				diffCell.id = `diff_${gconstVar}`;
-
-				if(bottoms.includes(gconstVar))
+				const gconstGroupLastVar = Object.keys(gconstGroup).slice(-1)[0];
+				for(const [gconstVar, gconstVal] of Object.entries(gconstGroup))
 				{
-					variableCell.classList.add("bottom");
-					valueCellComp.classList.add("bottom");
-					valueCell1.classList.add("bottom");
-					valueCell2.classList.add("bottom");
-					diffCell.classList.add("bottom");
+					const row = document.createElement("tr");
+
+					const variableCell = document.createElement("td");
+					variableCell.innerText = gconstVar;
+					variableCell.classList.add("variable");
+
+					const valueCellComp = document.createElement("td");
+					valueCellComp.id = `ruleset0_${gconstVar}`;
+					valueCellComp.innerText = gconstVal;
+					valueCellComp.classList.add("comp");
+
+					const valueCell1 = document.createElement("td");
+					valueCell1.id = `ruleset1_${gconstVar}`;
+
+					const valueCell2 = document.createElement("td");
+					valueCell2.id = `ruleset2_${gconstVar}`;
+
+					const diffCell = document.createElement("td");
+					diffCell.id = `diff_${gconstVar}`;
+
+					if(gconstVar == gconstGroupLastVar)
+					{
+						variableCell.classList.add("bottom");
+						valueCellComp.classList.add("bottom");
+						valueCell1.classList.add("bottom");
+						valueCell2.classList.add("bottom");
+						diffCell.classList.add("bottom");
+					}
+
+					row.appendChild(variableCell);
+					row.appendChild(valueCellComp);
+					row.appendChild(valueCell1);
+					row.appendChild(valueCell2);
+					row.appendChild(diffCell);
+
+					document.getElementById("difftable").appendChild(row);
 				}
-
-				row.appendChild(variableCell);
-				row.appendChild(valueCellComp);
-				row.appendChild(valueCell1);
-				row.appendChild(valueCell2);
-				row.appendChild(diffCell);
-
-				document.getElementById("difftable").appendChild(row);
 			}
 			toggleCompetitive();
 			compareFiles();
