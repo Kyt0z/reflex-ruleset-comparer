@@ -228,22 +228,29 @@
 
 		const bottoms = ["gconst_powerups_drop", "gconst_world_gravity", "gconst_mega_faratten", "gconst_melee_trace_radius", "gconst_burstgun_weaponpickupammo", "gconst_shotgun_weaponpickupammo", "gconst_grenadelauncher_weaponpickupammo", "gconst_plasmarifle_weaponpickupammo", "gconst_rocketlauncher_weaponpickupammo", "gconst_ioncannon_weaponpickupammo", "gconst_boltrifle_weaponpickupammo", "gconst_stakelauncher_weaponpickupammo"];
 
-		let rulesetComplete1 = "";
-		let rulesetComplete2 = "";
+		const sign = [
+			{"symbol": "", "literal": "negative", "change": "decreased", "absolute": "disabled"},
+			{"symbol": "+", "literal": "positive", "change": "increased", "absolute": "enabled"}
+		];
+		const shape = ["pill", "bullet"];
 
-		function parseRuleset(rulesetStr)
+		let ruleset = [
+			{"name": "Ruleset 1", "file": null, "str": ""},
+			{"name": "Ruleset 2", "file": null, "str": ""}
+		];
+
+		function parseRuleset(ruleset, rulesetStr)
 		{
-			let ruleset = {};
 			for(let line of rulesetStr.split("\n"))
 			{
 				line = line.trim();
 				if(line.length > 0 && line.substring(0, 2) != "//")
 				{
 					line = line.split(" ");
+					// if(name != "name" && name != "file" && name != "str")
 					ruleset[line[0]] = line[1];
 				}
 			}
-			return ruleset;
 		}
 
 		function countDecimals(num)
@@ -256,30 +263,30 @@
 
 		function compareFiles()
 		{
-			const fileInput1 = document.getElementById("ruleset1").files[0];
-			const fileInput2 = document.getElementById("ruleset2").files[0];
-
-			if(!fileInput1 || !fileInput2)
+			if(!validFileInputs())
 				return;
 
-			for(const rulesetName of ["rulesetName1", "rulesetName2"])
-				for(const elem of document.getElementsByClassName(rulesetName))
-					elem.innerText = (rulesetName.slice(-1) == "1" ? fileInput1 : fileInput2).name.slice(8, -4);
+			ruleset[0].name = ruleset[0].file.name.slice(8, -4);
+			for(const elem of document.getElementsByClassName("rulesetName1"))
+				elem.innerText = ruleset[0].name;
+
+			ruleset[1].name = ruleset[1].file.name.slice(8, -4);
+			for(const elem of document.getElementsByClassName("rulesetName2"))
+				elem.innerText = ruleset[1].name;
 
 			const reader1 = new FileReader();
 			const reader2 = new FileReader();
 			reader1.onload = function(event)
 			{
-				const ruleset1 = parseRuleset(event.target.result);
+				parseRuleset(ruleset[0], event.target.result);
+				ruleset[0].str = "";
 				reader2.onload = function(event)
 				{
-					const ruleset2 = parseRuleset(event.target.result);
-
-					rulesetComplete1 = "";
-					rulesetComplete2 = "";
+					parseRuleset(ruleset[1], event.target.result);
+					ruleset[1].str = "";
 
 					const changelog = document.getElementById("changelog");
-					changelog.textContent = `Changes from ${fileInput1.name.slice(8, -4)} to ${fileInput2.name.slice(8, -4)}:\n\n`;
+					changelog.textContent = `Changes from ${ruleset[0].name} to ${ruleset[1].name}:\n\n`;
 
 					const convertToNumbers = document.getElementById("convertToNumbers").checked;
 					const roundNumbers = document.getElementById("roundNumbers").checked;
@@ -300,8 +307,8 @@
 						diffCell.classList.remove("negative", "positive");
 						diffCell.innerText = "";
 
-						let gconstNum1 = ruleset1[gconstVar];
-						let gconstNum2 = ruleset2[gconstVar];
+						let gconstNum1 = ruleset[0][gconstVar];
+						let gconstNum2 = ruleset[1][gconstVar];
 						if(gconstNum1 === undefined && gconstNum2 === undefined)
 						{
 							gconstNum1 = gconstVal;
@@ -324,6 +331,7 @@
 						}
 
 						let gconstDiff = Number(gconstNum2) - Number(gconstNum1);
+						console.log(gconstNum1, gconstNum2, gconstDiff)
 						const decimals = Math.max(countDecimals(gconstNum1), countDecimals(gconstNum2));
 						if(convertToNumbers)
 						{
@@ -339,41 +347,36 @@
 						gconstCell1.innerText = gconstNum1;
 						gconstCell2.innerText = gconstNum2;
 
-						rulesetComplete1 += `${gconstVar} ${gconstNum1}\n`;
-						rulesetComplete2 += `${gconstVar} ${gconstNum2}\n`;
+						ruleset[0].str += `${gconstVar} ${gconstNum1}\n`;
+						ruleset[1].str += `${gconstVar} ${gconstNum2}\n`;
 						if(bottoms.includes(gconstVar))
 						{
-							rulesetComplete1 += "\n";
-							rulesetComplete2 += "\n";
+							ruleset[0].str += "\n";
+							ruleset[1].str += "\n";
 						}
 
 						if(gconstDiff != 0)
 						{
-							let sign;
-							if(gconstDiff > 0)
-								sign = {"symbol": "+", "literal": "positive", "change": "increased", "absolute": "enabled"};
-							else
-								sign = {"symbol": "", "literal": "negative", "change": "decreased", "absolute": "disabled"};
+							const diff = +(gconstDiff > 0);
 
-							diffCell.classList.add(sign["literal"]);
-							diffCell.innerText = `${sign["symbol"]}${gconstDiff}`;
+							diffCell.classList.add(sign[diff].literal);
+							diffCell.innerText = `${sign[diff].symbol}${gconstDiff}`;
 
-							const diffRelative = Number(gconstDiff / gconstNum1 * 100);
-							const decimals = Math.min(countDecimals(diffRelative.toString()), 2);
-
-							if(gconstVar == "gconst_player_isbullet")
+							switch(gconstVar)
 							{
-								const shape = ["pill", "bullet"];
-								changelog.textContent += `Player hitbox changed from ${shape[gconstNum1]} to ${shape[gconstNum2]}`;
-							}
-							else if(["gconst_expose_timers_to_lua", "gconst_powerups_drop", "gconst_wallclipping"].includes(gconstVar))
-							{
-								changelog.textContent += `${gconstVar} ${sign["absolute"]}`;
-							}
-							else
-							{
-								changelog.textContent += `${gconstVar} ${sign["change"]} from ${gconstNum1} to ${gconstNum2}`
-								changelog.textContent += ` (${sign["symbol"]}${diffRelative.toFixed(decimals)}%)`;
+								case "gconst_player_isbullet":
+									changelog.textContent += `Player hitbox changed from ${shape[gconstNum1]} to ${shape[gconstNum2]}`;
+									break;
+								case "gconst_expose_timers_to_lua":
+								case "gconst_powerups_drop":
+								case "gconst_wallclipping":
+									changelog.textContent += `${gconstVar} ${sign[diff].absolute}`;
+									break;
+								default:
+									const diffRelative = Number(gconstDiff / gconstNum1 * 100);
+									const decimals = Math.min(countDecimals(diffRelative.toString()), 2);
+									changelog.textContent += `${gconstVar} ${sign[diff].change} from ${gconstNum1} to ${gconstNum2}`
+									changelog.textContent += ` (${sign[diff].symbol}${diffRelative.toFixed(decimals)}%)`;
 							}
 							changelog.textContent += "\n";
 						}
@@ -381,24 +384,30 @@
 						if(bottoms.includes(gconstVar) && changelog.textContent.slice(-2) != "\n\n")
 							changelog.textContent += "\n";
 					}
-					rulesetComplete1 = rulesetComplete1.slice(0, -2);
-					rulesetComplete2 = rulesetComplete2.slice(0, -2);
+					ruleset[0].str = ruleset[0].str.slice(0, -2);
+					ruleset[1].str = ruleset[1].str.slice(0, -2);
 					changelog.textContent = changelog.textContent.slice(0, -2);
 					document.getElementById("outputRuleset1").disabled = false;
 					document.getElementById("outputRuleset2").disabled = false;
 				};
-				reader2.readAsText(fileInput2);
+				reader2.readAsText(ruleset[1].file);
 			};
-			reader1.readAsText(fileInput1);
+			reader1.readAsText(ruleset[0].file);
+		}
+
+		function validFileInputs()
+		{
+			ruleset[0].file = document.getElementById("ruleset1").files[0];
+			ruleset[1].file = document.getElementById("ruleset2").files[0];
+			return ruleset[0].file && ruleset[1].file;
 		}
 
 		function toggleCompare()
 		{
-			const fileInput1 = document.getElementById("ruleset1").files[0];
-			const fileInput2 = document.getElementById("ruleset2").files[0];
+			if(!validFileInputs())
+				return;
 
-			if(fileInput1 && fileInput2)
-				document.getElementById("compareRulesets").disabled = false;
+			document.getElementById("compareRulesets").disabled = false;
 		}
 
 		function toggleCompetitive()
@@ -423,16 +432,13 @@
 
 		function outputRuleset(num)
 		{
-			const fileInput1 = document.getElementById("ruleset1").files[0];
-			const fileInput2 = document.getElementById("ruleset2").files[0];
-
-			if(!fileInput1 || !fileInput2)
+			if(!validFileInputs())
 				return;
 
 			var elem = document.createElement('a');
 			elem.style.display = 'none';
-			elem.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent((num == 1 ? rulesetComplete1 : rulesetComplete2)));
-			elem.setAttribute('download', `${(num == 1 ? fileInput1 : fileInput2).name.slice(0, -4)}_full.cfg`);
+			elem.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(ruleset[num].str));
+			elem.setAttribute('download', `ruleset_${ruleset[num].name}_full.cfg`);
 
 			document.body.appendChild(elem);
 			elem.click();
@@ -463,8 +469,8 @@
 			<button id="compareRulesets" onclick="compareFiles()" disabled>Compare</button>
 			<hr>
 			<strong>Save</strong>
-			<button id="outputRuleset1" onclick="outputRuleset(1)" disabled><span class="rulesetName1">Ruleset 1</span></button>
-			<button id="outputRuleset2" onclick="outputRuleset(2)" disabled><span class="rulesetName2">Ruleset 2</span></button>
+			<button id="outputRuleset1" onclick="outputRuleset(0)" disabled><span class="rulesetName1">Ruleset 1</span></button>
+			<button id="outputRuleset2" onclick="outputRuleset(1)" disabled><span class="rulesetName2">Ruleset 2</span></button>
 			<br>
 		</div>
 	</div>
