@@ -239,6 +239,14 @@
 			{"name": "Ruleset 2", "file": null, "str": ""}
 		];
 
+		function countDecimals(num)
+		{
+			const numStrs = num.toString().split(".");
+			if(numStrs.length < 2)
+				return 0;
+			return numStrs[1].length;
+		}
+
 		function parseRuleset(ruleset, rulesetStr)
 		{
 			for(let line of rulesetStr.split("\n"))
@@ -253,16 +261,26 @@
 			}
 		}
 
-		function countDecimals(num)
+		function validFileInputs()
 		{
-			const numStrs = num.toString().split(".");
-			if(numStrs.length < 2)
-				return 0;
-			return numStrs[1].length;
+			ruleset[0].file = document.getElementById("ruleset1").files[0];
+			ruleset[1].file = document.getElementById("ruleset2").files[0];
+			return ruleset[0].file && ruleset[1].file;
 		}
 
 		function compareFiles()
 		{
+			const roundNumbersCheck = document.getElementById("roundNumbers");
+			if(document.getElementById("convertToNumbers").checked)
+			{
+				roundNumbersCheck.disabled = false;
+			}
+			else
+			{
+				roundNumbersCheck.checked = false
+				roundNumbersCheck.disabled = true;
+			}
+
 			if(!validFileInputs())
 				return;
 
@@ -395,39 +413,10 @@
 			reader1.readAsText(ruleset[0].file);
 		}
 
-		function validFileInputs()
-		{
-			ruleset[0].file = document.getElementById("ruleset1").files[0];
-			ruleset[1].file = document.getElementById("ruleset2").files[0];
-			return ruleset[0].file && ruleset[1].file;
-		}
-
-		function toggleCompare()
-		{
-			if(!validFileInputs())
-				return;
-
-			document.getElementById("compareRulesets").disabled = false;
-		}
-
 		function toggleCompetitive()
 		{
 			for(const elem of document.getElementsByClassName("comp"))
 				elem.style.display = document.getElementById("showCompetitive").checked ? "table-cell" : "none";
-		}
-
-		function toggleRounding()
-		{
-			const roundNumbersCheck = document.getElementById("roundNumbers");
-			if(document.getElementById("convertToNumbers").checked)
-			{
-				roundNumbersCheck.disabled = false;
-			}
-			else
-			{
-				roundNumbersCheck.checked = false
-				roundNumbersCheck.disabled = true;
-			}
 		}
 
 		function outputRuleset(num)
@@ -451,22 +440,19 @@
 		<div style="">
 			<strong>Ruleset 1</strong>
 			<br>
-			<input type="file" accept=".cfg" id="ruleset1" onchange="toggleCompare()">
+			<input type="file" accept=".cfg" id="ruleset1" onchange="compareFiles()">
 			<br>
 			<br>
 			<strong>Ruleset 2</strong>
 			<br>
-			<input type="file" accept=".cfg" id="ruleset2" onchange="toggleCompare()">
+			<input type="file" accept=".cfg" id="ruleset2" onchange="compareFiles()">
 		<div style="">
 			<br>
 			<label><input type="checkbox" id="showCompetitive" onclick="toggleCompetitive()"> Show defaults (Competitive)</label>
 			<br>
-			<label><input type="checkbox" id="convertToNumbers" onclick="toggleRounding()" checked> Convert to numbers</label>
+			<label><input type="checkbox" id="convertToNumbers" onclick="compareFiles()" checked> Convert to numbers</label>
 			<br>
-			<label><input type="checkbox" id="roundNumbers" onclick="toggleRounding()" checked> Round numbers</label>
-			<br>
-			<br>
-			<button id="compareRulesets" onclick="compareFiles()" disabled>Compare</button>
+			<label><input type="checkbox" id="roundNumbers" onclick="compareFiles()" checked> Round numbers</label>
 			<hr>
 			<strong>Save</strong>
 			<button id="outputRuleset1" onclick="outputRuleset(0)" disabled><span class="rulesetName1">Ruleset 1</span></button>
@@ -531,7 +517,7 @@
 				document.getElementById("difftable").appendChild(row);
 			}
 			toggleCompetitive();
-			toggleRounding();
+			compareFiles();
 		}
 		)();
 	</script>
