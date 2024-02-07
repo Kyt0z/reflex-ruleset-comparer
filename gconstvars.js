@@ -1,10 +1,10 @@
-const gconstVars = [
-  {
+const gconstVars = {
+  'general': {
     'gconst_default_game_timelimit': '10',
     'gconst_expose_timers_to_lua': '0',
     'gconst_powerups_drop': '1'
   },
-  {
+  'physics': {
     'gconst_player_isbullet': '1',
     'gconst_double_jump_velocity': '105',
     'gconst_jump_velocity': '255',
@@ -21,13 +21,13 @@ const gconstVars = [
     'gconst_wallclipping': '1',
     'gconst_world_gravity': '750'
   },
-  {
+  'sounds': {
     'gconst_armor100_faratten': '2200',
     'gconst_armor150_faratten': '2200',
     'gconst_armor50_faratten': '2200',
     'gconst_mega_faratten': '2200'
   },
-  {
+  'melee': {
     'gconst_melee_damage': '80',
     'gconst_melee_knockmult': '1.57',
     'gconst_melee_knockmult_airbourne': '0.94',
@@ -35,7 +35,7 @@ const gconstVars = [
     'gconst_melee_reload': '800',
     'gconst_melee_trace_radius': '10'
   },
-  {
+  'burstgun': {
     'gconst_burst_damage': '6',
     'gconst_burst_knockmult': '1.25',
     'gconst_burst_knockmult_airbourne': '1.5',
@@ -48,7 +48,7 @@ const gconstVars = [
     'gconst_burstgun_startammo': '10',
     'gconst_burstgun_weaponpickupammo': '10'
   },
-  {
+  'shotgun': {
     'gconst_shotgun_pellet_damage': '5',
     'gconst_shotgun_pellet_knockmult': '1.6',
     'gconst_shotgun_pellet_knockmult_airbourne': '1.4',
@@ -61,7 +61,7 @@ const gconstVars = [
     'gconst_shotgun_reload': '900',
     'gconst_shotgun_weaponpickupammo': '6'
   },
-  {
+  'grenadelauncher': {
     'gconst_grenade_damage': '100',
     'gconst_grenade_damage_splashmult': '0.85',
     'gconst_grenade_explosion_radius': '180',
@@ -75,13 +75,14 @@ const gconstVars = [
     'gconst_grenadelauncher_reload': '800',
     'gconst_grenadelauncher_weaponpickupammo': '5'
   },
-  {
+  'plasmarifle': {
     'gconst_cell_damage': '16',
     'gconst_cell_damage_splashmult': '1',
     'gconst_cell_explosion_radius': '32',
     'gconst_cell_knockmult': '0.85',
     'gconst_cell_knockmult_airbourne': '1',
     'gconst_cell_knockmult_self': '2',
+    'gconst_cell_speed': '2000',
     'gconst_cell_trace_radius_entities': '2.5',
     'gconst_cell_trace_radius_world': '2.5',
     'gconst_plasmarifle_ammopickupammo': '50',
@@ -90,7 +91,7 @@ const gconstVars = [
     'gconst_plasmarifle_reload': '100',
     'gconst_plasmarifle_weaponpickupammo': '50'
   },
-  {
+  'rocketlauncher': {
     'gconst_rocket_damage': '100',
     'gconst_rocket_damage_splashmult': '0.85',
     'gconst_rocket_explosion_radius': '120',
@@ -106,7 +107,7 @@ const gconstVars = [
     'gconst_rocketlauncher_reload': '800',
     'gconst_rocketlauncher_weaponpickupammo': '8'
   },
-  {
+  'ioncannon': {
     'gconst_beam_damage': '6',
     'gconst_beam_distance': '768',
     'gconst_beam_knockmult': '1.6',
@@ -121,7 +122,7 @@ const gconstVars = [
     'gconst_ioncannon_reload': '44',
     'gconst_ioncannon_weaponpickupammo': '75'
   },
-  {
+  'boltrifle': {
     'gconst_bolt_damage': '80',
     'gconst_bolt_knockmult': '0.5',
     'gconst_bolt_knockmult_airbourne': '0.5',
@@ -136,7 +137,7 @@ const gconstVars = [
     'gconst_boltrifle_reload': '1375',
     'gconst_boltrifle_weaponpickupammo': '5'
   },
-  {
+  'stake': {
     'gconst_stake_damage': '100',
     'gconst_stake_gravity': '700',
     'gconst_stake_knockmult': '1',
@@ -151,4 +152,45 @@ const gconstVars = [
     'gconst_stakelauncher_reload': '1250',
     'gconst_stakelauncher_weaponpickupammo': '10'
   }
-];
+};
+
+const dpsVars = {
+  'melee': {
+    'damage': gconstVars['melee']['gconst_melee_damage'],
+    'reload': gconstVars['melee']['gconst_melee_reload']
+  },
+  'burstgun': {
+    'damage': gconstVars['burstgun']['gconst_burst_damage'],
+    'reload': gconstVars['burstgun']['gconst_burstgun_reload'],
+    'pellets': 7
+  },
+  'shotgun': {
+    'damage': gconstVars['shotgun']['gconst_shotgun_pellet_damage'],
+    'reload': gconstVars['shotgun']['gconst_shotgun_reload'],
+    'pellets': 19
+  },
+  'grenadelauncher': {
+    'damage': gconstVars['grenadelauncher']['gconst_grenade_damage'],
+    'reload': gconstVars['grenadelauncher']['gconst_grenadelauncher_reload']
+  },
+  'plasmarifle': {
+    'damage': gconstVars['plasmarifle']['gconst_cell_damage'],
+    'reload': gconstVars['plasmarifle']['gconst_plasmarifle_reload']
+  },
+  'rocketlauncher': {
+    'damage': gconstVars['rocketlauncher']['gconst_rocket_damage'],
+    'reload': gconstVars['rocketlauncher']['gconst_rocketlauncher_reload']
+  },
+  'ioncannon': {
+    'damage': gconstVars['ioncannon']['gconst_beam_damage'],
+    'reload': gconstVars['ioncannon']['gconst_ioncannon_reload']
+  },
+  'boltrifle': {
+    'damage': gconstVars['boltrifle']['gconst_bolt_damage'],
+    'reload': gconstVars['boltrifle']['gconst_boltrifle_reload']
+  },
+  'stake': {
+    'damage': gconstVars['stake']['gconst_stake_damage'],
+    'reload': gconstVars['stake']['gconst_stakelauncher_reload']
+  }
+};

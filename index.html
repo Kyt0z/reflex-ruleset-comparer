@@ -8,7 +8,7 @@
   </head>
   <body>
     <div id="main">
-      <div>
+      <div class="side">
         <strong>Ruleset 1</strong>
         <br>
         <input type="file" accept=".cfg" id="fileSelect1">
@@ -29,18 +29,37 @@
         <button id="saveButton1" disabled><span class="rulesetName1">Ruleset 1</span></button>
         <button id="saveButton2" disabled><span class="rulesetName2">Ruleset 2</span></button>
       </div>
-      <div>
+      <div class="side">
         <table id="gconstTable">
-          <tr>
-            <th>Variable</th>
-            <th class="val0">Competitive</th>
-            <th class="rulesetName1">Ruleset 1</th>
-            <th class="rulesetName2">Ruleset 2</th>
-            <th>Change</th>
-          </tr>
+          <thead>
+            <tr>
+              <th>Variable</th>
+              <th class="val0">Competitive</th>
+              <th class="rulesetName1">Ruleset 1</th>
+              <th class="rulesetName2">Ruleset 2</th>
+              <th>Change</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
         </table>
       </div>
-      <div>
+      <div class="side">
+        <table id="dpsTable">
+          <thead>
+            <tr>
+              <th colspan="5" class="centered">DPS</th>
+            </tr>
+            <tr>
+              <th>Weapon</th>
+              <th class="val0">Competitive</th>
+              <th class="rulesetName1">Ruleset 1</th>
+              <th class="rulesetName2">Ruleset 2</th>
+              <th>Change</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <br>
         <textarea id="changelog" readonly>Changes from Ruleset 1 to Ruleset 2:</textarea>
       </div>
     </div>

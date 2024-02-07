@@ -21,6 +21,20 @@ function countDecimals(num)
   return numStrs[1].length;
 }
 
+function formatNumber(num, decimals)
+{
+  if(!convertToNumbers.checked)
+    return num;
+
+  num = Number(num);
+  return roundNumbers.checked && decimals ? num.toFixed(decimals) : num;
+}
+
+function calculateDPS(damage, reload)
+{
+  return (Number(damage) * 1000 / Number(reload)).toString();
+}
+
 function parseRuleset(rulesetVars, rulesetStr)
 {
   for(let line of rulesetStr.split('\n'))
@@ -34,18 +48,9 @@ function parseRuleset(rulesetVars, rulesetStr)
   }
 }
 
-function formatNumber(num, decimals)
+function updateDiffCell(row, varName, gconstVal1, gconstVal2, resetOnly, decimals)
 {
-  if(!convertToNumbers.checked)
-    return num;
-
-  num = Number(num);
-  return roundNumbers.checked && decimals ? num.toFixed(decimals) : num;
-}
-
-function updateDiffCell(varName, gconstVal1, gconstVal2, resetOnly, decimals)
-{
-  const diffCell = document.getElementById(varName).getElementsByClassName('diff')[0];
+  const diffCell = row.getElementsByClassName('diff')[0];
   diffCell.classList.remove('negative', 'positive');
   diffCell.innerText = '';
 
@@ -55,14 +60,14 @@ function updateDiffCell(varName, gconstVal1, gconstVal2, resetOnly, decimals)
   const gconstNum1 = Number(gconstVal1);
   const gconstNum2 = Number(gconstVal2);
 
-  const gconstDiff = formatNumber(gconstNum2 - gconstNum1, decimals);
+  const gconstDiff = gconstNum2 - gconstNum1;
   if(gconstDiff == 0)
     return;
 
   const diffSign = +(gconstDiff > 0);
 
   diffCell.classList.add(sign[diffSign].literal);
-  diffCell.innerText = `${sign[diffSign].symbol}${Math.abs(gconstDiff)}`;
+  diffCell.innerText = `${sign[diffSign].symbol}${formatNumber(Math.abs(gconstDiff), decimals)}`;
 
   switch(varName)
   {
@@ -75,6 +80,9 @@ function updateDiffCell(varName, gconstVal1, gconstVal2, resetOnly, decimals)
       changelog.textContent += `${varName} ${sign[diffSign].absolute}`;
       break;
     default:
+      if(varName in dpsVars)
+        varName = `${varName} DPS`;
+
       const diffRelative = Number(gconstDiff / gconstNum1 * 100);
       const decimalsRelative = Math.min(countDecimals(diffRelative), 2);
       changelog.textContent += `${varName} ${sign[diffSign].change} from ${gconstVal1} to ${gconstVal2}`
@@ -83,59 +91,97 @@ function updateDiffCell(varName, gconstVal1, gconstVal2, resetOnly, decimals)
   changelog.textContent += '\n';
 }
 
+function updateRow(row, num, varName, newVal, defaultVal, minDecimals = 0)
+{
+  const gconstCell0 = row.getElementsByClassName('val0')[0];
+  const gconstCell1 = row.getElementsByClassName(`val${num}`)[0];
+  const gconstCell2 = row.getElementsByClassName(`val${num % 2 + 1}`)[0];
+
+  let newValNum = null;
+  if(newVal !== undefined && newVal !== null)
+  {
+    newValNum = formatNumber(newVal);
+    gconstCell1.classList.remove('unset');
+  }
+  else
+  {
+    newValNum = formatNumber(defaultVal);
+    gconstCell1.classList.add('unset');
+  }
+
+  if(gconstCell1.classList.contains('unset') || gconstCell2.classList.contains('unset'))
+    gconstCell0.classList.remove('unset');
+  else
+    gconstCell0.classList.add('unset');
+
+  let decimals = Math.max(countDecimals(newValNum), countDecimals(gconstCell2.innerText));
+  if(varName in dpsVars)
+    decimals = Math.min(decimals, 2);
+  decimals = Math.max(decimals, minDecimals);
+
+  gconstCell1.innerText = formatNumber(newValNum, decimals);
+
+  const resetOnly = gconstCell2.innerText == '';
+  if(!resetOnly)
+    gconstCell2.innerText = formatNumber(gconstCell2.innerText, decimals);
+
+  if(num == 1)
+    updateDiffCell(row, varName, gconstCell1.innerText, gconstCell2.innerText, resetOnly, decimals);
+  else
+    updateDiffCell(row, varName, gconstCell2.innerText, gconstCell1.innerText, resetOnly, decimals);
+
+  return newValNum;
+}
+
 function updateColumns(num)
 {
-  for(const varGroup of gconstVars)
+  for(const [groupName, varGroup] of Object.entries(gconstVars))
   {
-    let groupDefaults = null;
+    let groupDefaults = {};
+    let weapon = {};
     for(const [varName, defaultVal] of Object.entries(varGroup))
     {
-      const gconstRow = document.getElementById(varName);
-      const gconstCell0 = gconstRow.getElementsByClassName('val0')[0];
-      const gconstCell1 = gconstRow.getElementsByClassName(`val${num}`)[0];
-      const gconstCell2 = gconstRow.getElementsByClassName(`val${num % 2 + 1}`)[0];
-
-      let gconstVal = null;
-      if(ruleset[num].gconstVals[varName] !== undefined)
-      {
-        gconstVal = formatNumber(ruleset[num].gconstVals[varName]);
-        gconstCell1.classList.remove('unset');
-      }
-      else
-      {
-        gconstVal = formatNumber(defaultVal);
-        gconstCell1.classList.add('unset');
-        if(!groupDefaults)
-          groupDefaults = {};
-        groupDefaults[varName] = gconstVal;
-      }
-
-      if(gconstCell1.classList.contains('unset') || gconstCell2.classList.contains('unset'))
-        gconstCell0.classList.remove('unset');
-      else
-        gconstCell0.classList.add('unset');
-
-      const decimals = Math.max(countDecimals(gconstVal), countDecimals(gconstCell2.innerText))
-      gconstCell1.innerText = formatNumber(gconstVal, decimals);
-
-      const resetOnly = gconstCell2.innerText == '';
-      if(!resetOnly)
-        gconstCell2.innerText = formatNumber(gconstCell2.innerText, decimals);
-
-      if(num == 1)
-        updateDiffCell(varName, gconstCell1.innerText, gconstCell2.innerText, resetOnly, decimals);
-      else
-        updateDiffCell(varName, gconstCell2.innerText, gconstCell1.innerText, resetOnly, decimals);
+      const gconstRow = gconstTableBody.getElementsByClassName(varName)[0];
+      const gconstVal = updateRow(gconstRow, num, varName, ruleset[num].gconstVals[varName], defaultVal);
+      groupDefaults[varName] = gconstVal;
+      const varNameEnd = varName.split('_').slice(-1)[0];
+      if(groupName in dpsVars && varNameEnd in dpsVars[groupName])
+        weapon[varNameEnd] = ruleset[num].gconstVals[varName];
     }
+    ruleset[num].gconstDefs.push(groupDefaults);
 
-    if(groupDefaults)
-      ruleset[num].gconstDefs.push(groupDefaults);
+    if(groupName in dpsVars)
+    {
+      const dpsRow = dpsTableBody.getElementsByClassName(groupName)[0];
+      const defaultWeapon = {'damage': dpsVars[groupName].damage, 'reload': dpsVars[groupName].reload};
+      let pellets = dpsVars[groupName].pellets;
+      if(!pellets)
+        pellets = 1;
+
+      let weaponDPS = null;
+      if(weapon.damage !== undefined && weapon.reload !== undefined)
+        weaponDPS = calculateDPS(pellets * weapon.damage, weapon.reload, dpsVars[groupName].pellets);
+      else if(weapon.damage !== undefined)
+        weaponDPS = calculateDPS(pellets * weapon.damage, defaultWeapon.reload, dpsVars[groupName].pellets);
+      else if(weapon.reload !== undefined)
+        weaponDPS = calculateDPS(pellets * defaultWeapon.damage, weapon.reload, dpsVars[groupName].pellets);
+
+      const defaultDPS = calculateDPS(pellets * defaultWeapon.damage, defaultWeapon.reload);
+
+      let decimals = [weapon.damage, weapon.reload, defaultWeapon.damage, defaultWeapon.reload];
+      decimals = decimals.map((val) => countDecimals(val));
+      decimals = Math.max(decimals[0], decimals[1], decimals[2], decimals[3]);
+
+      updateRow(dpsRow, num, groupName, weaponDPS, defaultDPS, decimals);
+    }
 
     if(changelog.textContent.slice(-2) != '\n\n')
       changelog.textContent += '\n';
   }
 }
 
+const gconstTableBody = document.getElementById('gconstTable').getElementsByTagName('tbody')[0];
+const dpsTableBody = document.getElementById('dpsTable').getElementsByTagName('tbody')[0];
 const fileSelect1 = document.getElementById('fileSelect1');
 const fileSelect2 = document.getElementById('fileSelect2');
 const showDefaults = document.getElementById('showDefaults');
@@ -251,7 +297,7 @@ roundNumbers.addEventListener('change', (event) => toggleRounding(convertToNumbe
 saveButton1.addEventListener('click', () => saveRuleset(1));
 saveButton2.addEventListener('click', () => saveRuleset(2));
 
-for(const varGroup of gconstVars)
+for(const [groupName, varGroup] of Object.entries(gconstVars))
 {
   let varCell = null;
   let valCell0 = null;
@@ -260,39 +306,71 @@ for(const varGroup of gconstVars)
   let diffCell = null;
   for(const [varName, defaultVal] of Object.entries(varGroup))
   {
-    const row = document.createElement('tr');
-    row.id = varName;
+    const gconstRow = document.createElement('tr');
+    gconstRow.className = varName;
 
     varCell = document.createElement('td');
     varCell.innerText = varName;
-    varCell.classList.add('variable');
+    varCell.className = 'variable';
 
     valCell0 = document.createElement('td');
     valCell0.innerText = defaultVal;
-    valCell0.classList.add('val0');
+    valCell0.className = 'val0';
 
     valCell1 = document.createElement('td');
-    valCell1.classList.add('val1');
+    valCell1.className = 'val1';
 
     valCell2 = document.createElement('td');
-    valCell2.classList.add('val2');
+    valCell2.className = 'val2';
 
     diffCell = document.createElement('td');
-    diffCell.classList.add('diff');
+    diffCell.className = 'diff';
 
-    row.appendChild(varCell);
-    row.appendChild(valCell0);
-    row.appendChild(valCell1);
-    row.appendChild(valCell2);
-    row.appendChild(diffCell);
+    gconstRow.appendChild(varCell);
+    gconstRow.appendChild(valCell0);
+    gconstRow.appendChild(valCell1);
+    gconstRow.appendChild(valCell2);
+    gconstRow.appendChild(diffCell);
 
-    document.getElementById('gconstTable').appendChild(row);
+    gconstTableBody.appendChild(gconstRow);
   }
   varCell.classList.add('bottom');
   valCell0.classList.add('bottom');
   valCell1.classList.add('bottom');
   valCell2.classList.add('bottom');
   diffCell.classList.add('bottom');
+
+  if(groupName in dpsVars)
+  {
+    const dpsRow = document.createElement('tr');
+    dpsRow.className = groupName;
+
+    varCell = document.createElement('td');
+    varCell.innerText = groupName;
+    varCell.className = 'variable';
+
+    valCell0 = document.createElement('td');
+
+    valCell0.innerText = Number(dpsVars[groupName].damage) * 1000 / Number(dpsVars[groupName].reload);
+    valCell0.className = 'val0';
+
+    valCell1 = document.createElement('td');
+    valCell1.className = 'val1';
+
+    valCell2 = document.createElement('td');
+    valCell2.className = 'val2';
+
+    diffCell = document.createElement('td');
+    diffCell.className = 'diff';
+
+    dpsRow.appendChild(varCell);
+    dpsRow.appendChild(valCell0);
+    dpsRow.appendChild(valCell1);
+    dpsRow.appendChild(valCell2);
+    dpsRow.appendChild(diffCell);
+
+    dpsTableBody.appendChild(dpsRow);
+  }
 }
 toggleDefaults(showDefaults);
 toggleRounding(convertToNumbers, roundNumbers, fileSelect1, fileSelect2, saveButton1, saveButton2);
