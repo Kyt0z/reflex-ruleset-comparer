@@ -192,3 +192,102 @@ const dpsVars = {
     'reload': 'gconst_stakelauncher_reload'
   }
 };
+
+const sign = [
+  {'symbol': '-', 'literal': 'negative', 'change': 'decreased', 'absolute': 'disabled'},
+  {'symbol': '+', 'literal': 'positive', 'change': 'increased', 'absolute': 'enabled'}
+];
+
+const shape = ['Pill', 'Bullet'];
+
+const clearNames = {
+  'gconst_default_game_timelimit': 'Timelimit',
+  'gconst_expose_timers_to_lua': 'Expose timers to Lua',
+  'gconst_powerups_drop': 'Powerup drop',
+  'gconst_player_isbullet': 'Player Hitbox',
+  'gconst_double_jump_velocity': 'Double Jump Velocity',
+  'gconst_jump_velocity': 'Jump Velocity',
+  'gconst_playerinair_acceleration': 'Air Acceleration',
+  'gconst_playerinair_aircontrol': 'Air Control',
+  'gconst_playerinair_bunny_accelerate': 'Bunny Acceleration',
+  'gconst_playerinair_bunny_wishspeed': 'Bunny Wishspeed',
+  'gconst_playerinair_decceleration': 'Air Decceleration',
+  'gconst_playerinaircrouched_acceleration': 'Crouched Air Acceleration',
+  'gconst_playeronground_acceleration': 'Ground Acceleration',
+  'gconst_playeronground_friction': 'Ground Friction',
+  'gconst_playeronground_speed': 'Ground Speed',
+  'gconst_playerongroundcrouched_speed': 'Crouched Ground Speed',
+  'gconst_wallclipping': 'Wall Clipping',
+  'gconst_world_gravity': 'Gravity',
+  'gconst_armor100_faratten': 'Yellow Armor Sound Range',
+  'gconst_armor150_faratten': 'Red Armor Sound Range',
+  'gconst_armor50_faratten': 'Green Armor Sound Range',
+  'gconst_mega_faratten': 'Mega Sound Range',
+
+
+  'melee': 'Melee',
+  'gconst_melee': 'Melee',
+
+  'burstgun': 'Burst Gun',
+  'gconst_burstgun': 'Burst Gun',
+  'gconst_burst': 'Burst Gun',
+
+  'shotgun': 'Shotgun',
+  'gconst_shotgun': 'Shotgun',
+
+  'grenadelauncher': 'Grenade Launcher',
+  'gconst_grenadelauncher': 'Grenade Launcher',
+  'gconst_grenade': 'Grenade Launcher',
+
+  'plasmarifle': 'Plasma',
+  'gconst_plasmarifle': 'Plasma',
+  'gconst_cell': 'Plasma',
+
+  'rocketlauncher': 'Rocket Launcher',
+  'gconst_rocketlauncher': 'Rocket Launcher',
+  'gconst_rocket': 'Rocket Launcher',
+
+  'ioncannon': 'Ion Cannon',
+  'gconst_ioncannon': 'Ion Cannon',
+  'gconst_beam': 'Ion Cannon',
+
+  'boltrifle': 'Bolt Rifle',
+  'gconst_boltrifle': 'Bolt Rifle',
+  'gconst_bolt': 'Bolt Rifle',
+
+  'stake': 'Stake Launcher',
+  'gconst_stakelauncher': 'Stake Launcher',
+  'gconst_stake': 'Stake Launcher',
+
+  'ammopickupammo': 'Box Ammo',
+  'burstsegments': 'Burst Segments',
+  'damage': 'Damage',
+  'damage_splashmult': 'Splash Damage Multiplier',
+  'distance': 'Distance',
+  'enabled': 'Enabled',
+  'explosion_radius': 'Splash Radius',
+  'gravity': 'Gravity',
+  'hum': 'Hum',
+  'hum_faratten': 'Hum Sound Range',
+  'knockmult': 'Knockback Multiplier',
+  'knockmult_airbourne': 'Air Knockback Multiplier',
+  'knockmult_self': 'Self Knockback Multiplier',
+  'lowammo': 'Low Ammo',
+  'maxammo': 'Max Ammo',
+  'pellet_damage': 'Damage',
+  'pellet_knockmult': 'Knockback Multiplier',
+  'pellet_knockmult_airbourne': 'Air Knockback Multiplier',
+  'pellet_range': 'Range',
+  'pellet_trace_radius_entities': 'Entity Trace',
+  'pellet_trace_radius_world': 'World Trace',
+  'radius': 'Radius',
+  'range': 'Range',
+  'reload': 'Reload Time',
+  'speed': 'Speed',
+  'speed_initial': 'Initial Speed',
+  'startammo': 'Start Ammo',
+  'trace_radius': 'Trace',
+  'trace_radius_entities': 'Entity Trace',
+  'trace_radius_world': 'World Trace',
+  'weaponpickupammo': 'Weapon Ammo'
+};

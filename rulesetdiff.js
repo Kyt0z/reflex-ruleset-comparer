@@ -1,9 +1,3 @@
-const sign = [
-  {'symbol': '-', 'literal': 'negative', 'change': 'decreased', 'absolute': 'disabled'},
-  {'symbol': '+', 'literal': 'positive', 'change': 'increased', 'absolute': 'enabled'}
-];
-const shape = ['pill', 'bullet'];
-
 let ruleset = {
   '1': {'name': 'Ruleset 1', 'file': null, 'str': null, 'gconstVals': null, 'gconstDefs': null},
   '2': {'name': 'Ruleset 2', 'file': null, 'str': null, 'gconstVals': null, 'gconstDefs': null}
@@ -35,6 +29,22 @@ function calculateDPS(damage, reload, pellets = 1)
   return Number(pellets) * Number(damage) * 1000 / Number(reload);
 }
 
+function getPellets(groupName, num)
+{
+  if(groupName == 'burstgun')
+  {
+    if(num !== undefined && 'gconst_burstgun_burstsegments' in ruleset[num].gconstVals)
+      return Number(ruleset[num].gconstVals['gconst_burstgun_burstsegments']) + 1;
+    else
+      return Number(gconstDefaults['burstgun']['gconst_burstgun_burstsegments']) + 1;
+  }
+  else if(groupName == 'shotgun')
+  {
+    return 19;
+  }
+  return 1;
+}
+
 function parseRuleset(rulesetStr)
 {
   let rulesetVars = {};
@@ -50,7 +60,7 @@ function parseRuleset(rulesetStr)
   return rulesetVars;
 }
 
-function updateDiffCell(row, varName, gconstVal1, gconstVal2, resetOnly, decimals)
+function updateDiffCell(row, varOrGroupName, gconstVal1, gconstVal2, resetOnly, decimals)
 {
   const diffCell = row.getElementsByClassName('diff')[0];
   diffCell.classList.remove('negative', 'positive');
@@ -71,29 +81,39 @@ function updateDiffCell(row, varName, gconstVal1, gconstVal2, resetOnly, decimal
   diffCell.classList.add(sign[diffSign].literal);
   diffCell.innerText = `${sign[diffSign].symbol}${formatNumber(Math.abs(gconstDiff), decimals)}`;
 
-  switch(varName)
+  let clearName = varOrGroupName.split('_');
+  clearName = [clearName.slice(0, 2).join('_'), clearName.slice(2).join('_')]
+  if(varOrGroupName in clearNames)
+    clearName = clearNames[varOrGroupName];
+  else if(clearName[0] in clearNames && clearName[1] in clearNames)
+    clearName = `${clearNames[clearName[0]]} ${clearNames[clearName[1]]}`;
+  else
+    clearName = varOrGroupName;
+
+  switch(varOrGroupName)
   {
     case 'gconst_player_isbullet':
-      changelog.textContent += `Player hitbox changed from ${shape[gconstNum1]} to ${shape[gconstNum2]}`;
+      changelog.textContent += `${clearName} changed from ${shape[gconstNum1]} to ${shape[gconstNum2]}`;
       break;
     case 'gconst_expose_timers_to_lua':
     case 'gconst_powerups_drop':
     case 'gconst_wallclipping':
-      changelog.textContent += `${varName} ${sign[diffSign].absolute}`;
+    case 'gconst_stakelauncher_enabled':
+      changelog.textContent += `${clearName} ${sign[diffSign].absolute}`;
       break;
     default:
-      if(varName in dpsVars)
-        varName = `${varName} DPS`;
+      if(varOrGroupName in dpsVars)
+        clearName = `${clearName} DPS`;
 
       const diffRelative = Number(gconstDiff / gconstNum1 * 100);
       const decimalsRelative = Math.min(countDecimals(diffRelative), 2);
-      changelog.textContent += `${varName} ${sign[diffSign].change} from ${gconstVal1} to ${gconstVal2}`
+      changelog.textContent += `${clearName} ${sign[diffSign].change} from ${gconstVal1} to ${gconstVal2}`
       changelog.textContent += ` (${sign[diffSign].symbol}${Math.abs(diffRelative.toFixed(decimalsRelative))}%)`;
   }
   changelog.textContent += '\n';
 }
 
-function updateRow(row, num, varName, newVal, defaultVal, minDecimals = 0)
+function updateRow(row, num, varOrGroupName, newVal, defaultVal, minDecimals = 0)
 {
   const gconstCell0 = row.getElementsByClassName('val0')[0];
   const gconstCell1 = row.getElementsByClassName(`val${num}`)[0];
@@ -117,7 +137,7 @@ function updateRow(row, num, varName, newVal, defaultVal, minDecimals = 0)
     gconstCell0.classList.add('unset');
 
   let decimals = Math.max(countDecimals(newValNum), countDecimals(gconstCell2.innerText));
-  if(varName in dpsVars)
+  if(varOrGroupName in dpsVars)
     decimals = Math.min(decimals, 2);
   decimals = Math.max(decimals, minDecimals);
 
@@ -128,9 +148,9 @@ function updateRow(row, num, varName, newVal, defaultVal, minDecimals = 0)
     gconstCell2.innerText = formatNumber(gconstCell2.innerText, decimals);
 
   if(num == 1)
-    updateDiffCell(row, varName, gconstCell1.innerText, gconstCell2.innerText, resetOnly, decimals);
+    updateDiffCell(row, varOrGroupName, gconstCell1.innerText, gconstCell2.innerText, resetOnly, decimals);
   else
-    updateDiffCell(row, varName, gconstCell2.innerText, gconstCell1.innerText, resetOnly, decimals);
+    updateDiffCell(row, varOrGroupName, gconstCell2.innerText, gconstCell1.innerText, resetOnly, decimals);
 }
 
 function updateColumns(num)
@@ -150,19 +170,6 @@ function updateColumns(num)
     {
       const dpsRow = dpsTableBody.getElementsByClassName(groupName)[0];
 
-      let pellets = 1;
-      if(groupName == 'burstgun')
-      {
-        if('gconst_burstgun_burstsegments' in ruleset[num].gconstVals)
-          pellets += Number(ruleset[num].gconstVals['gconst_burstgun_burstsegments']);
-        else
-          pellets += Number(groupDefaults['gconst_burstgun_burstsegments']);
-      }
-      else if(groupName == 'shotgun')
-      {
-        pellets += 18;
-      }
-
       const damageVar = dpsVars[groupName].damage;
       const reloadVar = dpsVars[groupName].reload;
 
@@ -172,6 +179,8 @@ function updateColumns(num)
       const damageDefault = groupDefaults[damageVar];
       const reloadDefault = groupDefaults[reloadVar];
 
+      const pellets = getPellets(groupName, num);
+
       let dps = null;
       if(damageRuleset !== undefined && reloadRuleset !== undefined)
         dps = calculateDPS(damageRuleset, reloadRuleset, pellets);
@@ -180,16 +189,16 @@ function updateColumns(num)
       else if(reloadRuleset !== undefined)
         dps = calculateDPS(damageDefault, reloadRuleset, pellets);
 
-      const defaultDPS = calculateDPS(damageDefault, reloadDefault, pellets);
+      const defaultDPS = dpsRow.getElementsByClassName('val0')[0].innerText;
 
-      const decimals = Math.max(
+      const minDecimals = Math.max(
         countDecimals(Number(damageRuleset)),
         countDecimals(Number(reloadRuleset)),
         countDecimals(Number(damageDefault)),
         countDecimals(Number(reloadDefault))
       );
 
-      updateRow(dpsRow, num, groupName, dps, defaultDPS, decimals);
+      updateRow(dpsRow, num, groupName, dps, defaultDPS, minDecimals);
     }
 
     if(changelog.textContent.slice(-2) != '\n\n')
@@ -285,10 +294,10 @@ function saveRuleset(num)
   for(const [groupName, groupDefaults] of Object.entries(ruleset[num].gconstDefs))
     for(const [varName, defaultVal] of Object.entries(groupDefaults))
       unsetVals.push(`${varName} ${defaultVal}`);
-  unsetVals = unsetVals.join('\n');
 
+  let rulesetFull = ruleset[num].str;
   if(unsetVals.length)
-    unsetVals = `\n\n// default values (Competitive) appended by rulesetdiff\n${unsetVals}`;
+    rulesetFull += `\n\n// default values (Competitive) appended by rulesetdiff\n${unsetVals.join('\n')}`;
 
   const elem = document.createElement('a');
   elem.style.display = 'none';
@@ -360,9 +369,13 @@ for(const [groupName, groupDefaults] of Object.entries(gconstDefaults))
     varCell.innerText = groupName;
     varCell.className = 'variable';
 
+    const damageVar = dpsVars[groupName].damage;
+    const reloadVar = dpsVars[groupName].reload;
+    const damageDefault = groupDefaults[damageVar];
+    const reloadDefault = groupDefaults[reloadVar];
+    const dps = calculateDPS(damageDefault, reloadDefault, getPellets(groupName));
     valCell0 = document.createElement('td');
-
-    valCell0.innerText = Number(dpsVars[groupName].damage) * 1000 / Number(dpsVars[groupName].reload);
+    valCell0.innerText = formatNumber(dps, Math.min(countDecimals(dps), 2));
     valCell0.className = 'val0';
 
     valCell1 = document.createElement('td');
