@@ -154,7 +154,7 @@ function updateColumns(num)
     {
       const dpsRow = dpsTableBody.getElementsByClassName(groupName)[0];
       const defaultWeapon = {'damage': dpsVars[groupName].damage, 'reload': dpsVars[groupName].reload};
-      let pellets = dpsVars[groupName].pellets;
+      let pellets = Number(dpsVars[groupName].pellets);
       if(!pellets)
         pellets = 1;
 
@@ -169,7 +169,7 @@ function updateColumns(num)
       const defaultDPS = calculateDPS(pellets * defaultWeapon.damage, defaultWeapon.reload);
 
       let decimals = [weapon.damage, weapon.reload, defaultWeapon.damage, defaultWeapon.reload];
-      decimals = decimals.map((val) => countDecimals(val));
+      decimals = decimals.map((val) => countDecimals(Number(val)));
       decimals = Math.max(decimals[0], decimals[1], decimals[2], decimals[3]);
 
       updateRow(dpsRow, num, groupName, weaponDPS, defaultDPS, decimals);
