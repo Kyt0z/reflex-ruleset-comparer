@@ -1,4 +1,4 @@
-const gconstVars = {
+const gconstDefaults = {
   'general': {
     'gconst_default_game_timelimit': '10',
     'gconst_expose_timers_to_lua': '0',
@@ -156,41 +156,39 @@ const gconstVars = {
 
 const dpsVars = {
   'melee': {
-    'damage': gconstVars['melee']['gconst_melee_damage'],
-    'reload': gconstVars['melee']['gconst_melee_reload']
+    'damage': 'gconst_melee_damage',
+    'reload': 'gconst_melee_reload'
   },
   'burstgun': {
-    'damage': gconstVars['burstgun']['gconst_burst_damage'],
-    'reload': gconstVars['burstgun']['gconst_burstgun_reload'],
-    'pellets': 7
+    'damage': 'gconst_burst_damage',
+    'reload': 'gconst_burstgun_reload'
   },
   'shotgun': {
-    'damage': gconstVars['shotgun']['gconst_shotgun_pellet_damage'],
-    'reload': gconstVars['shotgun']['gconst_shotgun_reload'],
-    'pellets': 19
+    'damage': 'gconst_shotgun_pellet_damage',
+    'reload': 'gconst_shotgun_reload'
   },
   'grenadelauncher': {
-    'damage': gconstVars['grenadelauncher']['gconst_grenade_damage'],
-    'reload': gconstVars['grenadelauncher']['gconst_grenadelauncher_reload']
+    'damage': 'gconst_grenade_damage',
+    'reload': 'gconst_grenadelauncher_reload'
   },
   'plasmarifle': {
-    'damage': gconstVars['plasmarifle']['gconst_cell_damage'],
-    'reload': gconstVars['plasmarifle']['gconst_plasmarifle_reload']
+    'damage': 'gconst_cell_damage',
+    'reload': 'gconst_plasmarifle_reload'
   },
   'rocketlauncher': {
-    'damage': gconstVars['rocketlauncher']['gconst_rocket_damage'],
-    'reload': gconstVars['rocketlauncher']['gconst_rocketlauncher_reload']
+    'damage': 'gconst_rocket_damage',
+    'reload': 'gconst_rocketlauncher_reload'
   },
   'ioncannon': {
-    'damage': gconstVars['ioncannon']['gconst_beam_damage'],
-    'reload': gconstVars['ioncannon']['gconst_ioncannon_reload']
+    'damage': 'gconst_beam_damage',
+    'reload': 'gconst_ioncannon_reload'
   },
   'boltrifle': {
-    'damage': gconstVars['boltrifle']['gconst_bolt_damage'],
-    'reload': gconstVars['boltrifle']['gconst_boltrifle_reload']
+    'damage': 'gconst_bolt_damage',
+    'reload': 'gconst_boltrifle_reload'
   },
   'stake': {
-    'damage': gconstVars['stake']['gconst_stake_damage'],
-    'reload': gconstVars['stake']['gconst_stakelauncher_reload']
+    'damage': 'gconst_stake_damage',
+    'reload': 'gconst_stakelauncher_reload'
   }
 };

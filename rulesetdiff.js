@@ -30,13 +30,14 @@ function formatNumber(num, decimals)
   return roundNumbers.checked && decimals ? num.toFixed(decimals) : num;
 }
 
-function calculateDPS(damage, reload)
+function calculateDPS(damage, reload, pellets = 1)
 {
-  return (Number(damage) * 1000 / Number(reload)).toString();
+  return Number(pellets) * Number(damage) * 1000 / Number(reload);
 }
 
-function parseRuleset(rulesetVars, rulesetStr)
+function parseRuleset(rulesetStr)
 {
+  let rulesetVars = {};
   for(let line of rulesetStr.split('\n'))
   {
     line = line.trim();
@@ -46,6 +47,7 @@ function parseRuleset(rulesetVars, rulesetStr)
       rulesetVars[line[0]] = line[1];
     }
   }
+  return rulesetVars;
 }
 
 function updateDiffCell(row, varName, gconstVal1, gconstVal2, resetOnly, decimals)
@@ -129,50 +131,65 @@ function updateRow(row, num, varName, newVal, defaultVal, minDecimals = 0)
     updateDiffCell(row, varName, gconstCell1.innerText, gconstCell2.innerText, resetOnly, decimals);
   else
     updateDiffCell(row, varName, gconstCell2.innerText, gconstCell1.innerText, resetOnly, decimals);
-
-  return newValNum;
 }
 
 function updateColumns(num)
 {
-  for(const [groupName, varGroup] of Object.entries(gconstVars))
+  for(const [groupName, groupDefaults] of Object.entries(gconstDefaults))
   {
-    let groupDefaults = {};
-    let weapon = {};
-    for(const [varName, defaultVal] of Object.entries(varGroup))
+    ruleset[num].gconstDefs[groupName] = {};
+    for(const [varName, defaultVal] of Object.entries(groupDefaults))
     {
       const gconstRow = gconstTableBody.getElementsByClassName(varName)[0];
-      const gconstVal = updateRow(gconstRow, num, varName, ruleset[num].gconstVals[varName], defaultVal);
-      groupDefaults[varName] = gconstVal;
-      const varNameEnd = varName.split('_').slice(-1)[0];
-      if(groupName in dpsVars && varNameEnd in dpsVars[groupName])
-        weapon[varNameEnd] = ruleset[num].gconstVals[varName];
+      updateRow(gconstRow, num, varName, ruleset[num].gconstVals[varName], defaultVal);
+      if(ruleset[num].gconstVals[varName] === undefined)
+        ruleset[num].gconstDefs[groupName][varName] = defaultVal;
     }
-    ruleset[num].gconstDefs.push(groupDefaults);
 
     if(groupName in dpsVars)
     {
       const dpsRow = dpsTableBody.getElementsByClassName(groupName)[0];
-      const defaultWeapon = {'damage': dpsVars[groupName].damage, 'reload': dpsVars[groupName].reload};
-      let pellets = Number(dpsVars[groupName].pellets);
-      if(!pellets)
-        pellets = 1;
 
-      let weaponDPS = null;
-      if(weapon.damage !== undefined && weapon.reload !== undefined)
-        weaponDPS = calculateDPS(pellets * weapon.damage, weapon.reload, dpsVars[groupName].pellets);
-      else if(weapon.damage !== undefined)
-        weaponDPS = calculateDPS(pellets * weapon.damage, defaultWeapon.reload, dpsVars[groupName].pellets);
-      else if(weapon.reload !== undefined)
-        weaponDPS = calculateDPS(pellets * defaultWeapon.damage, weapon.reload, dpsVars[groupName].pellets);
+      let pellets = 1;
+      if(groupName == 'burstgun')
+      {
+        if('gconst_burstgun_burstsegments' in ruleset[num].gconstVals)
+          pellets += Number(ruleset[num].gconstVals['gconst_burstgun_burstsegments']);
+        else
+          pellets += Number(groupDefaults['gconst_burstgun_burstsegments']);
+      }
+      else if(groupName == 'shotgun')
+      {
+        pellets += 18;
+      }
 
-      const defaultDPS = calculateDPS(pellets * defaultWeapon.damage, defaultWeapon.reload);
+      const damageVar = dpsVars[groupName].damage;
+      const reloadVar = dpsVars[groupName].reload;
 
-      let decimals = [weapon.damage, weapon.reload, defaultWeapon.damage, defaultWeapon.reload];
-      decimals = decimals.map((val) => countDecimals(Number(val)));
-      decimals = Math.max(decimals[0], decimals[1], decimals[2], decimals[3]);
+      const damageRuleset = ruleset[num].gconstVals[damageVar];
+      const reloadRuleset = ruleset[num].gconstVals[reloadVar];
 
-      updateRow(dpsRow, num, groupName, weaponDPS, defaultDPS, decimals);
+      const damageDefault = groupDefaults[damageVar];
+      const reloadDefault = groupDefaults[reloadVar];
+
+      let dps = null;
+      if(damageRuleset !== undefined && reloadRuleset !== undefined)
+        dps = calculateDPS(damageRuleset, reloadRuleset, pellets);
+      else if(damageRuleset !== undefined)
+        dps = calculateDPS(damageRuleset, reloadDefault, pellets);
+      else if(reloadRuleset !== undefined)
+        dps = calculateDPS(damageDefault, reloadRuleset, pellets);
+
+      const defaultDPS = calculateDPS(damageDefault, reloadDefault, pellets);
+
+      const decimals = Math.max(
+        countDecimals(Number(damageRuleset)),
+        countDecimals(Number(reloadRuleset)),
+        countDecimals(Number(damageDefault)),
+        countDecimals(Number(reloadDefault))
+      );
+
+      updateRow(dpsRow, num, groupName, dps, defaultDPS, decimals);
     }
 
     if(changelog.textContent.slice(-2) != '\n\n')
@@ -221,13 +238,13 @@ function selectFile(num, fileSelect, saveButton, callback)
 
   changelog.textContent = `Changes from ${ruleset[1].name} to ${ruleset[2].name}:\n\n`;
   ruleset[num].gconstVals = {};
-  ruleset[num].gconstDefs = [];
+  ruleset[num].gconstDefs = {};
 
   const fileReader = new FileReader();
   fileReader.onload = function(event)
   {
     ruleset[num].str = event.target.result;
-    parseRuleset(ruleset[num].gconstVals, ruleset[num].str);
+    ruleset[num].gconstVals = parseRuleset(ruleset[num].str);
     updateColumns(num);
     saveButton.disabled = false;
     callback();
@@ -264,24 +281,18 @@ function saveRuleset(num)
   if(!ruleset[num].file)
     return;
 
-  let rulesetFullStr = ruleset[num].str;
-  if(ruleset[num].gconstDefs.length)
-  {
-    rulesetFullStr += '\n\n// default values (Competitive) appended by rulesetdiff';
-    for(const varGroup of ruleset[num].gconstDefs)
-    {
-      rulesetFullStr += '\n';
-      for(const [varName, defaultVal] of Object.entries(varGroup))
-        rulesetFullStr += `${varName} ${defaultVal}\n`;
-    }
+  let unsetVals = [];
+  for(const [groupName, groupDefaults] of Object.entries(ruleset[num].gconstDefs))
+    for(const [varName, defaultVal] of Object.entries(groupDefaults))
+      unsetVals.push(`${varName} ${defaultVal}`);
+  unsetVals = unsetVals.join('\n');
 
-    if(rulesetFullStr.slice(-1)[0] == '\n')
-      rulesetFullStr = rulesetFullStr.slice(0, -1);
-  }
+  if(unsetVals.length)
+    unsetVals = `\n\n// default values (Competitive) appended by rulesetdiff\n${unsetVals}`;
 
   const elem = document.createElement('a');
   elem.style.display = 'none';
-  elem.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(rulesetFullStr));
+  elem.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(rulesetFull));
   elem.setAttribute('download', `ruleset_${ruleset[num].name}_full.cfg`);
 
   document.body.appendChild(elem);
@@ -297,14 +308,14 @@ roundNumbers.addEventListener('change', (event) => toggleRounding(convertToNumbe
 saveButton1.addEventListener('click', () => saveRuleset(1));
 saveButton2.addEventListener('click', () => saveRuleset(2));
 
-for(const [groupName, varGroup] of Object.entries(gconstVars))
+for(const [groupName, groupDefaults] of Object.entries(gconstDefaults))
 {
   let varCell = null;
   let valCell0 = null;
   let valCell1 = null;
   let valCell2 = null;
   let diffCell = null;
-  for(const [varName, defaultVal] of Object.entries(varGroup))
+  for(const [varName, defaultVal] of Object.entries(groupDefaults))
   {
     const gconstRow = document.createElement('tr');
     gconstRow.className = varName;
