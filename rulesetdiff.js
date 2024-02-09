@@ -1,3 +1,27 @@
+const gconstTableBody = document.getElementById('gconstTable').getElementsByTagName('tbody')[0];
+const dpsTableBody = document.getElementById('dpsTable').getElementsByTagName('tbody')[0];
+const fileSelect1 = document.getElementById('fileSelect1');
+const fileSelect2 = document.getElementById('fileSelect2');
+const showDefaults = document.getElementById('showDefaults');
+const convertToNumbers = document.getElementById('convertToNumbers');
+const roundNumbers = document.getElementById('roundNumbers');
+const saveButton1 = document.getElementById('saveButton1');
+const saveButton2 = document.getElementById('saveButton2');
+const changelog = document.getElementById('changelog');
+
+convertToNumbers.checked = true;
+roundNumbers.checked = true;
+saveButton1.disabled = true;
+saveButton2.disabled = true;
+
+fileSelect1.addEventListener('change', (event) => selectFile(1, event.currentTarget, saveButton1));
+fileSelect2.addEventListener('change', (event) => selectFile(2, event.currentTarget, saveButton2));
+showDefaults.addEventListener('change', () => toggleDefaults());
+convertToNumbers.addEventListener('change', () => toggleRounding());
+roundNumbers.addEventListener('change', () => toggleRounding());
+saveButton1.addEventListener('click', () => saveRuleset(1));
+saveButton2.addEventListener('click', () => saveRuleset(2));
+
 let ruleset = {
   '1': {'name': 'Ruleset 1', 'file': null, 'str': null, 'gconstVals': null, 'gconstDefs': null},
   '2': {'name': 'Ruleset 2', 'file': null, 'str': null, 'gconstVals': null, 'gconstDefs': null}
@@ -206,22 +230,6 @@ function updateColumns(num)
   }
 }
 
-const gconstTableBody = document.getElementById('gconstTable').getElementsByTagName('tbody')[0];
-const dpsTableBody = document.getElementById('dpsTable').getElementsByTagName('tbody')[0];
-const fileSelect1 = document.getElementById('fileSelect1');
-const fileSelect2 = document.getElementById('fileSelect2');
-const showDefaults = document.getElementById('showDefaults');
-const convertToNumbers = document.getElementById('convertToNumbers');
-const roundNumbers = document.getElementById('roundNumbers');
-const saveButton1 = document.getElementById('saveButton1');
-const saveButton2 = document.getElementById('saveButton2');
-const changelog = document.getElementById('changelog');
-
-convertToNumbers.checked = true;
-roundNumbers.checked = true;
-saveButton1.disabled = true;
-saveButton2.disabled = true;
-
 function selectFile(num, fileSelect, saveButton, callback)
 {
   if(num != 1 && num != 2)
@@ -235,7 +243,7 @@ function selectFile(num, fileSelect, saveButton, callback)
   saveButton.disabled = true;
 
   if(!callback)
-    callback = function() {};
+    callback = () => {};
 
   ruleset[num].file = fileSelect.files[0];
   if(!ruleset[num].file)
@@ -250,7 +258,7 @@ function selectFile(num, fileSelect, saveButton, callback)
   ruleset[num].gconstDefs = {};
 
   const fileReader = new FileReader();
-  fileReader.onload = function(event)
+  fileReader.onload = (event) =>
   {
     ruleset[num].str = event.target.result;
     ruleset[num].gconstVals = parseRuleset(ruleset[num].str);
@@ -261,13 +269,13 @@ function selectFile(num, fileSelect, saveButton, callback)
   fileReader.readAsText(ruleset[num].file);
 }
 
-function toggleDefaults(showDefaults)
+function toggleDefaults()
 {
   for(const elem of document.getElementsByClassName('val0'))
     elem.style.display = showDefaults.checked ? 'table-cell' : 'none';
 }
 
-function toggleRounding(convertToNumbers, roundNumbers, fileSelect1, fileSelect2, saveButton1, saveButton2)
+function toggleRounding()
 {
   if(convertToNumbers.checked)
   {
@@ -308,14 +316,6 @@ function saveRuleset(num)
   elem.click();
   document.body.removeChild(elem);
 }
-
-fileSelect1.addEventListener('change', (event) => selectFile(1, event.currentTarget, saveButton1));
-fileSelect2.addEventListener('change', (event) => selectFile(2, event.currentTarget, saveButton2));
-showDefaults.addEventListener('change', (event) => toggleDefaults(event.currentTarget));
-convertToNumbers.addEventListener('change', (event) => toggleRounding(event.currentTarget, roundNumbers, fileSelect1, fileSelect2, saveButton1, saveButton2));
-roundNumbers.addEventListener('change', (event) => toggleRounding(convertToNumbers, event.currentTarget, fileSelect1, fileSelect2, saveButton1, saveButton2));
-saveButton1.addEventListener('click', () => saveRuleset(1));
-saveButton2.addEventListener('click', () => saveRuleset(2));
 
 for(const [groupName, groupDefaults] of Object.entries(gconstDefaults))
 {
@@ -396,5 +396,5 @@ for(const [groupName, groupDefaults] of Object.entries(gconstDefaults))
     dpsTableBody.appendChild(dpsRow);
   }
 }
-toggleDefaults(showDefaults);
-toggleRounding(convertToNumbers, roundNumbers, fileSelect1, fileSelect2, saveButton1, saveButton2);
+toggleDefaults();
+toggleRounding();
