@@ -224,7 +224,6 @@ const clearNames = {
   'gconst_armor50_faratten': 'Green Armor Sound Range',
   'gconst_mega_faratten': 'Mega Sound Range',
 
-
   'melee': 'Melee',
   'gconst_melee': 'Melee',
 
