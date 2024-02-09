@@ -33,7 +33,7 @@ function getPellets(groupName, num)
 {
   if(groupName == 'burstgun')
   {
-    if(num !== undefined && 'gconst_burstgun_burstsegments' in ruleset[num].gconstVals)
+    if(num !== undefined && ruleset[num].gconstVals.hasOwnProperty('gconst_burstgun_burstsegments'))
       return Number(ruleset[num].gconstVals['gconst_burstgun_burstsegments']) + 1;
     else
       return Number(gconstDefaults['burstgun']['gconst_burstgun_burstsegments']) + 1;
@@ -83,9 +83,9 @@ function updateDiffCell(row, varOrGroupName, gconstVal1, gconstVal2, resetOnly, 
 
   let clearName = varOrGroupName.split('_');
   clearName = [clearName.slice(0, 2).join('_'), clearName.slice(2).join('_')]
-  if(varOrGroupName in clearNames)
+  if(clearNames.hasOwnProperty(varOrGroupName))
     clearName = clearNames[varOrGroupName];
-  else if(clearName[0] in clearNames && clearName[1] in clearNames)
+  else if(clearNames.hasOwnProperty(clearName[0]) && clearNames.hasOwnProperty(clearName[1]))
     clearName = `${clearNames[clearName[0]]} ${clearNames[clearName[1]]}`;
   else
     clearName = varOrGroupName;
@@ -102,7 +102,7 @@ function updateDiffCell(row, varOrGroupName, gconstVal1, gconstVal2, resetOnly, 
       changelog.textContent += `${clearName} ${sign[diffSign].absolute}`;
       break;
     default:
-      if(varOrGroupName in dpsVars)
+      if(dpsVars.hasOwnProperty(varOrGroupName))
         clearName = `${clearName} DPS`;
 
       const diffRelative = Number(gconstDiff / gconstNum1 * 100);
@@ -113,7 +113,7 @@ function updateDiffCell(row, varOrGroupName, gconstVal1, gconstVal2, resetOnly, 
   changelog.textContent += '\n';
 }
 
-function updateRow(row, num, varOrGroupName, newVal, defaultVal, minDecimals = 0)
+function updateRow(num, row, varOrGroupName, newVal, defaultVal, minDecimals = 0)
 {
   const gconstCell0 = row.getElementsByClassName('val0')[0];
   const gconstCell1 = row.getElementsByClassName(`val${num}`)[0];
@@ -137,7 +137,7 @@ function updateRow(row, num, varOrGroupName, newVal, defaultVal, minDecimals = 0
     gconstCell0.classList.add('unset');
 
   let decimals = Math.max(countDecimals(newValNum), countDecimals(gconstCell2.innerText));
-  if(varOrGroupName in dpsVars)
+  if(dpsVars.hasOwnProperty(varOrGroupName))
     decimals = Math.min(decimals, 2);
   decimals = Math.max(decimals, minDecimals);
 
@@ -161,12 +161,12 @@ function updateColumns(num)
     for(const [varName, defaultVal] of Object.entries(groupDefaults))
     {
       const gconstRow = gconstTableBody.getElementsByClassName(varName)[0];
-      updateRow(gconstRow, num, varName, ruleset[num].gconstVals[varName], defaultVal);
+      updateRow(num, gconstRow, varName, ruleset[num].gconstVals[varName], defaultVal);
       if(ruleset[num].gconstVals[varName] === undefined)
         ruleset[num].gconstDefs[groupName][varName] = defaultVal;
     }
 
-    if(groupName in dpsVars)
+    if(dpsVars.hasOwnProperty(groupName))
     {
       const dpsRow = dpsTableBody.getElementsByClassName(groupName)[0];
 
@@ -198,7 +198,7 @@ function updateColumns(num)
         countDecimals(Number(reloadDefault))
       );
 
-      updateRow(dpsRow, num, groupName, dps, defaultDPS, minDecimals);
+      updateRow(num, dpsRow, groupName, dps, defaultDPS, minDecimals);
     }
 
     if(changelog.textContent.slice(-2) != '\n\n')
@@ -360,7 +360,7 @@ for(const [groupName, groupDefaults] of Object.entries(gconstDefaults))
   valCell2.classList.add('bottom');
   diffCell.classList.add('bottom');
 
-  if(groupName in dpsVars)
+  if(dpsVars.hasOwnProperty(groupName))
   {
     const dpsRow = document.createElement('tr');
     dpsRow.className = groupName;
