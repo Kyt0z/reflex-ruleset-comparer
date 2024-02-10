@@ -19,13 +19,10 @@ fileSelect2.addEventListener('change', (event) => selectFile(2, event.currentTar
 showDefaults.addEventListener('change', () => toggleDefaults());
 convertToNumbers.addEventListener('change', () => toggleRounding());
 roundNumbers.addEventListener('change', () => toggleRounding());
-saveButton1.addEventListener('click', () => saveRuleset(1));
-saveButton2.addEventListener('click', () => saveRuleset(2));
+saveButton1.addEventListener('click', () => saveRuleset(1, fileSelect1));
+saveButton2.addEventListener('click', () => saveRuleset(2, fileSelect2));
 
-let ruleset = {
-  '1': {'name': 'Ruleset 1', 'file': null, 'str': null, 'gconstVals': null, 'gconstDefs': null},
-  '2': {'name': 'Ruleset 2', 'file': null, 'str': null, 'gconstVals': null, 'gconstDefs': null}
-};
+let ruleset = {};
 
 function countDecimals(num)
 {
@@ -57,10 +54,10 @@ function getPellets(groupName, num)
 {
   if(groupName == 'burstgun')
   {
-    if(num !== undefined && ruleset[num].gconstVals.hasOwnProperty('gconst_burstgun_burstsegments'))
-      return Number(ruleset[num].gconstVals['gconst_burstgun_burstsegments']) + 1;
+    if(num !== undefined && ruleset[num].hasOwnProperty('gconst_burstgun_burstsegments'))
+      return Number(ruleset[num]['gconst_burstgun_burstsegments']) + 1;
     else
-      return Number(gconstDefaults['burstgun']['gconst_burstgun_burstsegments']) + 1;
+      return Number(rulesetDefault['gconst_burstgun_burstsegments']) + 1;
   }
   else if(groupName == 'shotgun')
   {
@@ -84,7 +81,80 @@ function parseRuleset(rulesetStr)
   return rulesetVars;
 }
 
-function updateDiffCell(row, varOrGroupName, gconstVal1, gconstVal2, resetOnly, decimals)
+function isWeaponGroupName(varOrGroupName)
+{
+  const weaponGroupNames = new Set(['melee', 'burstgun', 'shotgun', 'grenadelauncher', 'plasmarifle', 'rocketlauncher', 'ioncannon', 'boltrifle', 'stake']);
+  return weaponGroupNames.has(varOrGroupName);
+}
+
+function rowChange(row, groupChanges, nameAppend = '')
+{
+  const diffCell = row.getElementsByClassName('diff')[0];
+  if(diffCell.innerText == '')
+    return;
+
+  const varOrGroupName = row.getElementsByClassName('variable')[0].innerText;
+  const diffval1 = row.getElementsByClassName('val1')[0].innerText;
+  const diffVal2 = row.getElementsByClassName('val2')[0].innerText;
+
+  const name = clearNames[varOrGroupName];
+  switch(varOrGroupName)
+  {
+    case 'gconst_player_isbullet':
+      const shape = ['Pill', 'Bullet'];
+      groupChanges.push(`${name} changed from ${shape[+(diffval1 != '0')]} to ${shape[+(diffVal2 != '0')]}\n`);
+      break;
+    case 'gconst_expose_timers_to_lua':
+    case 'gconst_powerups_drop':
+    case 'gconst_wallclipping':
+    case 'gconst_stakelauncher_enabled':
+      groupChanges.push(`${name} ${diffCell.innerText != '0' ? 'enabled' : 'disabled'}\n`);
+      break;
+    default:
+      let diff = Number(diffCell.innerText);
+      let type = 'decreased';
+      let sign = '-';
+      if(diff > 0)
+      {
+        type = 'increased';
+        sign = '+';
+      }
+      diff = 100 * diff / Number(diffval1);
+      const decimals = Math.min(countDecimals(diff), 2);
+      diff = Math.abs(diff.toFixed(decimals));
+      groupChanges.push(`${name}${nameAppend} ${type} from ${diffval1} to ${diffVal2} (${sign}${diff}%)\n`);
+  }
+}
+
+function generateChangelog()
+{
+  if(!fileSelect1.files[0] || !fileSelect2.files[0])
+    return;
+
+  const rulesetName1 = fileSelect1.files[0].name.slice(8, -4);
+  const rulesetName2 = fileSelect2.files[0].name.slice(8, -4);
+  changelog.value = `Changes from ${rulesetName1} to ${rulesetName2}:\n\n`;
+  for(const group of gconstGroups)
+  {
+    let groupChanges = [];
+    for(const varName of group.variables)
+    {
+      const gconstRow = gconstTableBody.getElementsByClassName(varName)[0];
+      rowChange(gconstRow, groupChanges);
+    }
+
+    if(group.hasOwnProperty('damage') && group.hasOwnProperty('reload'))
+    {
+      const dpsRow = dpsTableBody.getElementsByClassName(group.name)[0];
+      rowChange(dpsRow, groupChanges, ' DPS');
+    }
+
+    if(groupChanges.length)
+      changelog.value += groupChanges.join('') + '\n';
+  }
+}
+
+function updateDiffCell(row, fromVal, toVal, resetOnly, decimals)
 {
   const diffCell = row.getElementsByClassName('diff')[0];
   diffCell.classList.remove('negative', 'positive');
@@ -93,117 +163,84 @@ function updateDiffCell(row, varOrGroupName, gconstVal1, gconstVal2, resetOnly, 
   if(resetOnly)
     return;
 
-  const gconstNum1 = Number(gconstVal1);
-  const gconstNum2 = Number(gconstVal2);
-
-  const gconstDiff = gconstNum2 - gconstNum1;
-  if(gconstDiff == 0)
+  const diff = Number(toVal) - Number(fromVal);
+  if(diff == 0)
     return;
 
-  const diffSign = +(gconstDiff > 0);
-
-  diffCell.classList.add(sign[diffSign].literal);
-  diffCell.innerText = `${sign[diffSign].symbol}${formatNumber(Math.abs(gconstDiff), decimals)}`;
-
-  let clearName = varOrGroupName.split('_');
-  clearName = [clearName.slice(0, 2).join('_'), clearName.slice(2).join('_')]
-  if(clearNames.hasOwnProperty(varOrGroupName))
-    clearName = clearNames[varOrGroupName];
-  else if(clearNames.hasOwnProperty(clearName[0]) && clearNames.hasOwnProperty(clearName[1]))
-    clearName = `${clearNames[clearName[0]]} ${clearNames[clearName[1]]}`;
-  else
-    clearName = varOrGroupName;
-
-  switch(varOrGroupName)
+  let type = 'negative';
+  let sign = '-';
+  if(diff > 0)
   {
-    case 'gconst_player_isbullet':
-      changelog.textContent += `${clearName} changed from ${shape[gconstNum1]} to ${shape[gconstNum2]}`;
-      break;
-    case 'gconst_expose_timers_to_lua':
-    case 'gconst_powerups_drop':
-    case 'gconst_wallclipping':
-    case 'gconst_stakelauncher_enabled':
-      changelog.textContent += `${clearName} ${sign[diffSign].absolute}`;
-      break;
-    default:
-      if(dpsVars.hasOwnProperty(varOrGroupName))
-        clearName = `${clearName} DPS`;
-
-      const diffRelative = Number(gconstDiff / gconstNum1 * 100);
-      const decimalsRelative = Math.min(countDecimals(diffRelative), 2);
-      changelog.textContent += `${clearName} ${sign[diffSign].change} from ${gconstVal1} to ${gconstVal2}`
-      changelog.textContent += ` (${sign[diffSign].symbol}${Math.abs(diffRelative.toFixed(decimalsRelative))}%)`;
+    type = 'positive';
+    sign = '+';
   }
-  changelog.textContent += '\n';
+
+  diffCell.classList.add(type);
+  diffCell.innerText = `${sign}${formatNumber(Math.abs(diff), decimals)}`;
 }
 
-function updateRow(num, row, varOrGroupName, newVal, defaultVal, minDecimals = 0)
+function updateRow(num, row, newVal, defaultVal, minDecimals = 0)
 {
-  const gconstCell0 = row.getElementsByClassName('val0')[0];
-  const gconstCell1 = row.getElementsByClassName(`val${num}`)[0];
-  const gconstCell2 = row.getElementsByClassName(`val${num % 2 + 1}`)[0];
+  const varCell = row.getElementsByClassName('variable')[0];
+  const valCell0 = row.getElementsByClassName('val0')[0];
+  const valCell1 = row.getElementsByClassName(`val${num}`)[0];
+  const valCell2 = row.getElementsByClassName(`val${num % 2 + 1}`)[0];
 
   let newValNum = null;
   if(newVal !== undefined && newVal !== null)
   {
     newValNum = formatNumber(newVal);
-    gconstCell1.classList.remove('unset');
+    valCell1.classList.remove('unset');
   }
   else
   {
     newValNum = formatNumber(defaultVal);
-    gconstCell1.classList.add('unset');
+    valCell1.classList.add('unset');
   }
 
-  if(gconstCell1.classList.contains('unset') || gconstCell2.classList.contains('unset'))
-    gconstCell0.classList.remove('unset');
+  if(valCell1.classList.contains('unset') || valCell2.classList.contains('unset'))
+    valCell0.classList.remove('unset');
   else
-    gconstCell0.classList.add('unset');
+    valCell0.classList.add('unset');
 
-  let decimals = Math.max(countDecimals(newValNum), countDecimals(gconstCell2.innerText));
-  if(dpsVars.hasOwnProperty(varOrGroupName))
+  let decimals = Math.max(countDecimals(newValNum), countDecimals(valCell2.innerText));
+  if(isWeaponGroupName(varCell.innerText))
     decimals = Math.min(decimals, 2);
   decimals = Math.max(decimals, minDecimals);
 
-  gconstCell1.innerText = formatNumber(newValNum, decimals);
+  valCell1.innerText = formatNumber(newValNum, decimals);
 
-  const resetOnly = gconstCell2.innerText == '';
+  const resetOnly = valCell2.innerText == '';
   if(!resetOnly)
-    gconstCell2.innerText = formatNumber(gconstCell2.innerText, decimals);
+    valCell2.innerText = formatNumber(valCell2.innerText, decimals);
 
   if(num == 1)
-    updateDiffCell(row, varOrGroupName, gconstCell1.innerText, gconstCell2.innerText, resetOnly, decimals);
+    updateDiffCell(row, valCell1.innerText, valCell2.innerText, resetOnly, decimals);
   else
-    updateDiffCell(row, varOrGroupName, gconstCell2.innerText, gconstCell1.innerText, resetOnly, decimals);
+    updateDiffCell(row, valCell2.innerText, valCell1.innerText, resetOnly, decimals);
 }
 
 function updateColumns(num)
 {
-  for(const [groupName, groupDefaults] of Object.entries(gconstDefaults))
+  for(const group of gconstGroups)
   {
-    ruleset[num].gconstDefs[groupName] = {};
-    for(const [varName, defaultVal] of Object.entries(groupDefaults))
+    for(const varName of group.variables)
     {
       const gconstRow = gconstTableBody.getElementsByClassName(varName)[0];
-      updateRow(num, gconstRow, varName, ruleset[num].gconstVals[varName], defaultVal);
-      if(ruleset[num].gconstVals[varName] === undefined)
-        ruleset[num].gconstDefs[groupName][varName] = defaultVal;
+      updateRow(num, gconstRow, ruleset[num][varName], rulesetDefault[varName]);
     }
 
-    if(dpsVars.hasOwnProperty(groupName))
+    if(group.hasOwnProperty('damage') && group.hasOwnProperty('reload'))
     {
-      const dpsRow = dpsTableBody.getElementsByClassName(groupName)[0];
+      const dpsRow = dpsTableBody.getElementsByClassName(group.name)[0];
 
-      const damageVar = dpsVars[groupName].damage;
-      const reloadVar = dpsVars[groupName].reload;
+      const damageRuleset = ruleset[num][group.damage];
+      const reloadRuleset = ruleset[num][group.reload];
 
-      const damageRuleset = ruleset[num].gconstVals[damageVar];
-      const reloadRuleset = ruleset[num].gconstVals[reloadVar];
+      const damageDefault = rulesetDefault[group.damage];
+      const reloadDefault = rulesetDefault[group.reload];
 
-      const damageDefault = groupDefaults[damageVar];
-      const reloadDefault = groupDefaults[reloadVar];
-
-      const pellets = getPellets(groupName, num);
+      const pellets = getPellets(group.name, num);
 
       let dps = null;
       if(damageRuleset !== undefined && reloadRuleset !== undefined)
@@ -222,11 +259,8 @@ function updateColumns(num)
         countDecimals(Number(reloadDefault))
       );
 
-      updateRow(num, dpsRow, groupName, dps, defaultDPS, minDecimals);
+      updateRow(num, dpsRow, dps, defaultDPS, minDecimals);
     }
-
-    if(changelog.textContent.slice(-2) != '\n\n')
-      changelog.textContent += '\n';
   }
 }
 
@@ -245,28 +279,25 @@ function selectFile(num, fileSelect, saveButton, callback)
   if(!callback)
     callback = () => {};
 
-  ruleset[num].file = fileSelect.files[0];
-  if(!ruleset[num].file)
+  if(!fileSelect.files[0])
     return;
 
-  ruleset[num].name = ruleset[num].file.name.slice(8, -4);
+  const rulesetName = fileSelect.files[0].name.slice(8, -4);
   for(const elem of document.getElementsByClassName(`rulesetName${num}`))
-    elem.innerText = ruleset[num].name;
+    elem.innerText = rulesetName;
 
-  changelog.textContent = `Changes from ${ruleset[1].name} to ${ruleset[2].name}:\n\n`;
-  ruleset[num].gconstVals = {};
-  ruleset[num].gconstDefs = {};
+  ruleset[num] = {};
 
   const fileReader = new FileReader();
   fileReader.onload = (event) =>
   {
-    ruleset[num].str = event.target.result;
-    ruleset[num].gconstVals = parseRuleset(ruleset[num].str);
+    ruleset[num] = parseRuleset(event.target.result);
     updateColumns(num);
+    generateChangelog();
     saveButton.disabled = false;
     callback();
   };
-  fileReader.readAsText(ruleset[num].file);
+  fileReader.readAsText(fileSelect.files[0]);
 }
 
 function toggleDefaults()
@@ -290,41 +321,48 @@ function toggleRounding()
   selectFile(1, fileSelect1, saveButton1, () => selectFile(2, fileSelect2, saveButton2));
 }
 
-function saveRuleset(num)
+function saveRuleset(num, fileSelect)
 {
   if(num != 1 && num != 2)
     return;
 
-  if(!ruleset[num].file)
+  if(!fileSelect.files[0])
     return;
 
-  let unsetVals = [];
-  for(const [groupName, groupDefaults] of Object.entries(ruleset[num].gconstDefs))
-    for(const [varName, defaultVal] of Object.entries(groupDefaults))
-      unsetVals.push(`${varName} ${defaultVal}`);
+  const rulesetName = fileSelect.files[0].name.slice(8, -4);
 
-  let rulesetFull = ruleset[num].str;
-  if(unsetVals.length)
-    rulesetFull += `\n\n// default values (Competitive) appended by rulesetdiff\n${unsetVals.join('\n')}`;
+  const fileReader = new FileReader();
+  fileReader.onload = (event) =>
+  {
+    let unsetVals = [];
+    for(const [groupName, groupDefaults] of Object.entries(ruleset[num].gconstDefs))
+      for(const [varName, defaultVal] of Object.entries(groupDefaults))
+        unsetVals.push(`${varName} ${defaultVal}`);
 
-  const elem = document.createElement('a');
-  elem.style.display = 'none';
-  elem.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(rulesetFull));
-  elem.setAttribute('download', `ruleset_${ruleset[num].name}_full.cfg`);
+    let rulesetFull = event.target.result;
+    if(unsetVals.length)
+      rulesetFull += `\n\n// default values (Competitive) appended by rulesetdiff\n${unsetVals.join('\n')}`;
 
-  document.body.appendChild(elem);
-  elem.click();
-  document.body.removeChild(elem);
+    const elem = document.createElement('a');
+    elem.style.display = 'none';
+    elem.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(rulesetFull));
+    elem.setAttribute('download', `ruleset_${rulesetName}_full.cfg`);
+
+    document.body.appendChild(elem);
+    elem.click();
+    document.body.removeChild(elem);
+  };
+  fileReader.readAsText(fileSelect.files[0]);
 }
 
-for(const [groupName, groupDefaults] of Object.entries(gconstDefaults))
+for(const group of gconstGroups)
 {
   let varCell = null;
   let valCell0 = null;
   let valCell1 = null;
   let valCell2 = null;
   let diffCell = null;
-  for(const [varName, defaultVal] of Object.entries(groupDefaults))
+  for(const varName of group.variables)
   {
     const gconstRow = document.createElement('tr');
     gconstRow.className = varName;
@@ -334,7 +372,7 @@ for(const [groupName, groupDefaults] of Object.entries(gconstDefaults))
     varCell.className = 'variable';
 
     valCell0 = document.createElement('td');
-    valCell0.innerText = defaultVal;
+    valCell0.innerText = rulesetDefault[varName];
     valCell0.className = 'val0';
 
     valCell1 = document.createElement('td');
@@ -360,20 +398,18 @@ for(const [groupName, groupDefaults] of Object.entries(gconstDefaults))
   valCell2.classList.add('bottom');
   diffCell.classList.add('bottom');
 
-  if(dpsVars.hasOwnProperty(groupName))
+  if(group.hasOwnProperty('damage') && group.hasOwnProperty('reload'))
   {
     const dpsRow = document.createElement('tr');
-    dpsRow.className = groupName;
+    dpsRow.className = group.name;
 
     varCell = document.createElement('td');
-    varCell.innerText = groupName;
+    varCell.innerText = group.name;
     varCell.className = 'variable';
 
-    const damageVar = dpsVars[groupName].damage;
-    const reloadVar = dpsVars[groupName].reload;
-    const damageDefault = groupDefaults[damageVar];
-    const reloadDefault = groupDefaults[reloadVar];
-    const dps = calculateDPS(damageDefault, reloadDefault, getPellets(groupName));
+    const damageDefault = rulesetDefault[group.damage];
+    const reloadDefault = rulesetDefault[group.reload];
+    const dps = calculateDPS(damageDefault, reloadDefault, getPellets(group.name));
     valCell0 = document.createElement('td');
     valCell0.innerText = formatNumber(dps, Math.min(countDecimals(dps), 2));
     valCell0.className = 'val0';
