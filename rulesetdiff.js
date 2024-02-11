@@ -24,6 +24,11 @@ saveButton2.addEventListener('click', () => saveRuleset(2, fileSelect2));
 
 let ruleset = {};
 
+function calculateDPS(damage, reload, pellets = 1)
+{
+  return Number(pellets) * Number(damage) * 1000 / Number(reload);
+}
+
 function countDecimals(num)
 {
   if(num === undefined)
@@ -45,19 +50,13 @@ function formatNumber(num, decimals)
   return roundNumbers.checked && decimals ? num.toFixed(decimals) : num;
 }
 
-function calculateDPS(damage, reload, pellets = 1)
-{
-  return Number(pellets) * Number(damage) * 1000 / Number(reload);
-}
-
-function getPellets(groupName, num)
+function getPellets(groupName, pellets)
 {
   if(groupName == 'burstgun')
   {
-    if(num !== undefined && ruleset[num].hasOwnProperty('gconst_burstgun_burstsegments'))
-      return Number(ruleset[num]['gconst_burstgun_burstsegments']) + 1;
-    else
-      return Number(rulesetDefault['gconst_burstgun_burstsegments']) + 1;
+    if(pellets !== undefined)
+      return Number(pellets) + 1;
+    return Number(defaultRuleset['gconst_burstgun_burstsegments']) + 1;
   }
   else if(groupName == 'shotgun')
   {
@@ -81,6 +80,16 @@ function parseRuleset(rulesetStr)
   return rulesetVars;
 }
 
+function truncateFilename(filename)
+{
+  // remove "ruleset_" from beginning
+  if(filename.slice(0, 8) == 'ruleset_')
+    filename = filename.slice(8);
+  // remove extension
+  filename = filename.split('.').slice(0, -1).join('.');
+  return filename;
+}
+
 function isWeaponGroupName(varOrGroupName)
 {
   const weaponGroupNames = new Set(['melee', 'burstgun', 'shotgun', 'grenadelauncher', 'plasmarifle', 'rocketlauncher', 'ioncannon', 'boltrifle', 'stake']);
@@ -97,7 +106,7 @@ function rowChange(row, groupChanges, nameAppend = '')
   const diffval1 = row.getElementsByClassName('val1')[0].innerText;
   const diffVal2 = row.getElementsByClassName('val2')[0].innerText;
 
-  const name = clearNames[varOrGroupName];
+  const name = gconstLabels[varOrGroupName];
   switch(varOrGroupName)
   {
     case 'gconst_player_isbullet':
@@ -131,8 +140,8 @@ function generateChangelog()
   if(!fileSelect1.files[0] || !fileSelect2.files[0])
     return;
 
-  const rulesetName1 = fileSelect1.files[0].name.slice(8, -4);
-  const rulesetName2 = fileSelect2.files[0].name.slice(8, -4);
+  const rulesetName1 = truncateFilename(fileSelect1.files[0].name);
+  const rulesetName2 = truncateFilename(fileSelect2.files[0].name);
   changelog.value = `Changes from ${rulesetName1} to ${rulesetName2}:\n\n`;
   for(const group of gconstGroups)
   {
@@ -182,7 +191,7 @@ function updateDiffCell(row, fromVal, toVal, resetOnly, decimals)
 function updateRow(num, row, newVal, defaultVal, minDecimals = 0)
 {
   const varCell = row.getElementsByClassName('variable')[0];
-  const valCell0 = row.getElementsByClassName('val0')[0];
+  const valCell0 = row.getElementsByClassName('defval')[0];
   const valCell1 = row.getElementsByClassName(`val${num}`)[0];
   const valCell2 = row.getElementsByClassName(`val${num % 2 + 1}`)[0];
 
@@ -227,36 +236,30 @@ function updateColumns(num)
     for(const varName of group.variables)
     {
       const gconstRow = gconstTableBody.getElementsByClassName(varName)[0];
-      updateRow(num, gconstRow, ruleset[num][varName], rulesetDefault[varName]);
+      updateRow(num, gconstRow, ruleset[num][varName], defaultRuleset[varName]);
     }
 
     if(group.hasOwnProperty('damage') && group.hasOwnProperty('reload'))
     {
       const dpsRow = dpsTableBody.getElementsByClassName(group.name)[0];
 
-      const damageRuleset = ruleset[num][group.damage];
-      const reloadRuleset = ruleset[num][group.reload];
-
-      const damageDefault = rulesetDefault[group.damage];
-      const reloadDefault = rulesetDefault[group.reload];
-
-      const pellets = getPellets(group.name, num);
+      const pellets = getPellets(group.name, ruleset[num][group.pellets]);
 
       let dps = null;
-      if(damageRuleset !== undefined && reloadRuleset !== undefined)
-        dps = calculateDPS(damageRuleset, reloadRuleset, pellets);
-      else if(damageRuleset !== undefined)
-        dps = calculateDPS(damageRuleset, reloadDefault, pellets);
-      else if(reloadRuleset !== undefined)
-        dps = calculateDPS(damageDefault, reloadRuleset, pellets);
+      if(ruleset[num].hasOwnProperty(group.damage) && ruleset[num].hasOwnProperty(group.reload))
+        dps = calculateDPS(ruleset[num][group.damage], ruleset[num][group.reload], pellets);
+      else if(ruleset[num].hasOwnProperty(group.damage))
+        dps = calculateDPS(ruleset[num][group.damage], defaultRuleset[group.reload], pellets);
+      else if(ruleset[num].hasOwnProperty(group.reload))
+        dps = calculateDPS(defaultRuleset[group.damage], ruleset[num][group.reload], pellets);
 
-      const defaultDPS = dpsRow.getElementsByClassName('val0')[0].innerText;
+      const defaultDPS = dpsRow.getElementsByClassName('defval')[0].innerText;
 
       const minDecimals = Math.max(
-        countDecimals(Number(damageRuleset)),
-        countDecimals(Number(reloadRuleset)),
-        countDecimals(Number(damageDefault)),
-        countDecimals(Number(reloadDefault))
+        countDecimals(Number(ruleset[num][group.damage])),
+        countDecimals(Number(ruleset[num][group.reload])),
+        countDecimals(Number(defaultRuleset[group.damage])),
+        countDecimals(Number(defaultRuleset[group.reload]))
       );
 
       updateRow(num, dpsRow, dps, defaultDPS, minDecimals);
@@ -282,12 +285,11 @@ function selectFile(num, fileSelect, saveButton, callback)
   if(!fileSelect.files[0])
     return;
 
-  const rulesetName = fileSelect.files[0].name.slice(8, -4);
+  const rulesetName = truncateFilename(fileSelect.files[0].name);
   for(const elem of document.getElementsByClassName(`rulesetName${num}`))
     elem.innerText = rulesetName;
 
   ruleset[num] = {};
-
   const fileReader = new FileReader();
   fileReader.onload = (event) =>
   {
@@ -302,7 +304,7 @@ function selectFile(num, fileSelect, saveButton, callback)
 
 function toggleDefaults()
 {
-  for(const elem of document.getElementsByClassName('val0'))
+  for(const elem of document.getElementsByClassName('defval'))
     elem.style.display = showDefaults.checked ? 'table-cell' : 'none';
 }
 
@@ -329,24 +331,31 @@ function saveRuleset(num, fileSelect)
   if(!fileSelect.files[0])
     return;
 
-  const rulesetName = fileSelect.files[0].name.slice(8, -4);
-
   const fileReader = new FileReader();
   fileReader.onload = (event) =>
   {
     let unsetVals = [];
-    for(const [groupName, groupDefaults] of Object.entries(ruleset[num].gconstDefs))
-      for(const [varName, defaultVal] of Object.entries(groupDefaults))
-        unsetVals.push(`${varName} ${defaultVal}`);
+    for(const group of gconstGroups)
+    {
+      const previousLength = unsetVals.length;
+
+      for(const varName of group.variables)
+        if(!ruleset[num].hasOwnProperty(varName))
+          unsetVals.push(`${varName} ${defaultRuleset[varName]}`);
+
+      if(previousLength != unsetVals.length)
+        unsetVals.push('');
+    }
+    unsetVals = unsetVals.slice(0, -1);
 
     let rulesetFull = event.target.result;
     if(unsetVals.length)
-      rulesetFull += `\n\n// default values (Competitive) appended by rulesetdiff\n${unsetVals.join('\n')}`;
+      rulesetFull += `\n\n// default values appended by rulesetdiff\n\n${unsetVals.join('\n')}`;
 
     const elem = document.createElement('a');
     elem.style.display = 'none';
     elem.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(rulesetFull));
-    elem.setAttribute('download', `ruleset_${rulesetName}_full.cfg`);
+    elem.setAttribute('download', `ruleset_${truncateFilename(fileSelect.files[0].name)}_full.cfg`);
 
     document.body.appendChild(elem);
     elem.click();
@@ -372,8 +381,8 @@ for(const group of gconstGroups)
     varCell.className = 'variable';
 
     valCell0 = document.createElement('td');
-    valCell0.innerText = rulesetDefault[varName];
-    valCell0.className = 'val0';
+    valCell0.innerText = defaultRuleset[varName];
+    valCell0.className = 'defval';
 
     valCell1 = document.createElement('td');
     valCell1.className = 'val1';
@@ -407,12 +416,10 @@ for(const group of gconstGroups)
     varCell.innerText = group.name;
     varCell.className = 'variable';
 
-    const damageDefault = rulesetDefault[group.damage];
-    const reloadDefault = rulesetDefault[group.reload];
-    const dps = calculateDPS(damageDefault, reloadDefault, getPellets(group.name));
+    const dps = calculateDPS(defaultRuleset[group.damage], defaultRuleset[group.reload], getPellets(group.name));
     valCell0 = document.createElement('td');
     valCell0.innerText = formatNumber(dps, Math.min(countDecimals(dps), 2));
-    valCell0.className = 'val0';
+    valCell0.className = 'defval';
 
     valCell1 = document.createElement('td');
     valCell1.className = 'val1';
