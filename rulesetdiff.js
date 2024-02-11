@@ -3,6 +3,7 @@ const dpsTableBody = document.getElementById('dpsTable').getElementsByTagName('t
 const fileSelect1 = document.getElementById('fileSelect1');
 const fileSelect2 = document.getElementById('fileSelect2');
 const showDefaults = document.getElementById('showDefaults');
+const showVarLabels = document.getElementById('showVarLabels');
 const convertToNumbers = document.getElementById('convertToNumbers');
 const roundNumbers = document.getElementById('roundNumbers');
 const saveButton1 = document.getElementById('saveButton1');
@@ -17,6 +18,7 @@ saveButton2.disabled = true;
 fileSelect1.addEventListener('change', (event) => selectFile(1, event.currentTarget, saveButton1));
 fileSelect2.addEventListener('change', (event) => selectFile(2, event.currentTarget, saveButton2));
 showDefaults.addEventListener('change', () => toggleDefaults());
+showVarLabels.addEventListener('change', () => toggleLabels());
 convertToNumbers.addEventListener('change', () => toggleRounding());
 roundNumbers.addEventListener('change', () => toggleRounding());
 saveButton1.addEventListener('click', () => saveRuleset(1, fileSelect1));
@@ -90,24 +92,17 @@ function truncateFilename(filename)
   return filename;
 }
 
-function isWeaponGroupName(varOrGroupName)
-{
-  const weaponGroupNames = new Set(['melee', 'burstgun', 'shotgun', 'grenadelauncher', 'plasmarifle', 'rocketlauncher', 'ioncannon', 'boltrifle', 'stake']);
-  return weaponGroupNames.has(varOrGroupName);
-}
-
 function rowChange(row, groupChanges, nameAppend = '')
 {
   const diffCell = row.getElementsByClassName('diff')[0];
   if(diffCell.innerText == '')
     return;
 
-  const varOrGroupName = row.getElementsByClassName('variable')[0].innerText;
   const diffval1 = row.getElementsByClassName('val1')[0].innerText;
   const diffVal2 = row.getElementsByClassName('val2')[0].innerText;
 
-  const name = gconstLabels[varOrGroupName];
-  switch(varOrGroupName)
+  const name = gconstLabels[row.id];
+  switch(row.id)
   {
     case 'gconst_player_isbullet':
       const shape = ['Pill', 'Bullet'];
@@ -148,13 +143,13 @@ function generateChangelog()
     let groupChanges = [];
     for(const varName of group.variables)
     {
-      const gconstRow = gconstTableBody.getElementsByClassName(varName)[0];
+      const gconstRow = document.getElementById(varName);
       rowChange(gconstRow, groupChanges);
     }
 
     if(group.hasOwnProperty('damage') && group.hasOwnProperty('reload'))
     {
-      const dpsRow = dpsTableBody.getElementsByClassName(group.name)[0];
+      const dpsRow = document.getElementById(group.name);
       rowChange(dpsRow, groupChanges, ' DPS');
     }
 
@@ -190,7 +185,6 @@ function updateDiffCell(row, fromVal, toVal, resetOnly, decimals)
 
 function updateRow(num, row, newVal, defaultVal, minDecimals = 0)
 {
-  const varCell = row.getElementsByClassName('variable')[0];
   const valCell0 = row.getElementsByClassName('defval')[0];
   const valCell1 = row.getElementsByClassName(`val${num}`)[0];
   const valCell2 = row.getElementsByClassName(`val${num % 2 + 1}`)[0];
@@ -213,7 +207,7 @@ function updateRow(num, row, newVal, defaultVal, minDecimals = 0)
     valCell0.classList.add('unset');
 
   let decimals = Math.max(countDecimals(newValNum), countDecimals(valCell2.innerText));
-  if(isWeaponGroupName(varCell.innerText))
+  if(row.offsetParent.id == dpsTableBody.offsetParent.id)
     decimals = Math.min(decimals, 2);
   decimals = Math.max(decimals, minDecimals);
 
@@ -235,13 +229,13 @@ function updateColumns(num)
   {
     for(const varName of group.variables)
     {
-      const gconstRow = gconstTableBody.getElementsByClassName(varName)[0];
+      const gconstRow = document.getElementById(varName);
       updateRow(num, gconstRow, ruleset[num][varName], defaultRuleset[varName]);
     }
 
     if(group.hasOwnProperty('damage') && group.hasOwnProperty('reload'))
     {
-      const dpsRow = dpsTableBody.getElementsByClassName(group.name)[0];
+      const dpsRow = document.getElementById(group.name);
 
       const pellets = getPellets(group.name, ruleset[num][group.pellets]);
 
@@ -306,6 +300,12 @@ function toggleDefaults()
 {
   for(const elem of document.getElementsByClassName('defval'))
     elem.style.display = showDefaults.checked ? 'table-cell' : 'none';
+}
+
+function toggleLabels()
+{
+  for(const elem of gconstTableBody.querySelectorAll('td.variable'))
+    elem.innerText = showVarLabels.checked ? gconstLabels[elem.parentNode.id] : elem.parentNode.id;
 }
 
 function toggleRounding()
@@ -374,7 +374,7 @@ for(const group of gconstGroups)
   for(const varName of group.variables)
   {
     const gconstRow = document.createElement('tr');
-    gconstRow.className = varName;
+    gconstRow.id = varName;
 
     varCell = document.createElement('td');
     varCell.innerText = varName;
@@ -410,10 +410,10 @@ for(const group of gconstGroups)
   if(group.hasOwnProperty('damage') && group.hasOwnProperty('reload'))
   {
     const dpsRow = document.createElement('tr');
-    dpsRow.className = group.name;
+    dpsRow.id = group.name;
 
     varCell = document.createElement('td');
-    varCell.innerText = group.name;
+    varCell.innerText = gconstLabels[group.name];
     varCell.className = 'variable';
 
     const dps = calculateDPS(defaultRuleset[group.damage], defaultRuleset[group.reload], getPellets(group.name));
@@ -440,4 +440,5 @@ for(const group of gconstGroups)
   }
 }
 toggleDefaults();
+toggleLabels();
 toggleRounding();
