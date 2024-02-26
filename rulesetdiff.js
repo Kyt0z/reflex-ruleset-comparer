@@ -112,7 +112,7 @@ function rowChange(row, groupChanges, nameAppend = '')
     case 'gconst_powerups_drop':
     case 'gconst_wallclipping':
     case 'gconst_stakelauncher_enabled':
-      groupChanges.push(`${name} ${diffCell.innerText != '0' ? 'enabled' : 'disabled'}\n`);
+      groupChanges.push(`${name} ${diffVal2 != '0' ? 'enabled' : 'disabled'}\n`);
       break;
     default:
       let diff = Number(diffCell.innerText);
